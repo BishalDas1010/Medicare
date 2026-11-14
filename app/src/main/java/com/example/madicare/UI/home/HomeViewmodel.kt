@@ -1,10 +1,12 @@
 package com.example.madicare.UI.home
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.madicare.DATABASE.AppDatabase
 import com.example.madicare.DATABASE.MedicareRepository
+import com.example.madicare.Data.HomeUiState
+import com.example.madicare.Data.Medicine
+import com.example.madicare.Ennum.MedicineStatus
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,48 +15,27 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
 // --- Data Models ---
-enum class MedicineStatus {
-    TAKEN, NEXT, UPCOMING
-}
-
-data class Medicine(
-    val id: String,
-    val name: String,
-    val dosage: String,
-    val time: String,
-    val status: MedicineStatus
-)
-
-// --- UI State ---
-data class HomeUiState(
-    val dateString: String = "Sun, Nov 16, 2026",
-    val medicinesTaken: Int = 0,
-    val totalMedicines: Int = 0,
-    val nextTime: String = "None",
-    val schedule: List<Medicine> = emptyList(),
-    val isLoading: Boolean = false
-) {
-    val progressFraction: Float
-        get() = if (totalMedicines > 0) medicinesTaken.toFloat() / totalMedicines.toFloat() else 0f
-}
 
 // --- ViewModel ---
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = MedicareRepository(AppDatabase.getDatabase(application).medicareDao())
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val repository: MedicareRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState(isLoading = true))
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
     init {
+        // WHAT: We no longer insert dummy data. We just start listening to the empty database.
         loadHomeData()
     }
 
     private fun loadHomeData() {
         viewModelScope.launch {
-            repository.ensureDefaultProfile(1L)
-            repository.getMedicines(1L).collect { dbMedicines ->
+            repository.medicines.collect { dbMedicines ->
                 val currentDateStr = SimpleDateFormat("EEE, MMM d, yyyy", Locale.getDefault()).format(Date())
 
                 var foundNext = false
@@ -78,6 +59,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
                 val takenCount = dbMedicines.count { it.isTaken }
                 val totalCount = dbMedicines.size
+
+                // If the list is empty, nextTime is "None". If all are taken, it's "All Taken".
                 val nextMedicineTime = dbMedicines.firstOrNull { !it.isTaken }?.time
                     ?: if (dbMedicines.isNotEmpty()) "All Taken" else "None"
 
@@ -98,7 +81,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     fun markAsTaken(medicineIdStr: String) {
         val medicineId = medicineIdStr.toLongOrNull() ?: return
         viewModelScope.launch {
-            repository.updateMedicineTakenStatus(medicineId, true)
+            repository.markMedicineAsTaken(medicineId)
         }
     }
 }

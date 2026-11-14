@@ -1,15 +1,15 @@
 package com.example.madicare.UI.Medicines
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.madicare.DATABASE.AppDatabase
 import com.example.madicare.DATABASE.MedicareRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // ==========================================
 // 1. DATA MODELS & UI STATE
@@ -45,8 +45,10 @@ data class MedicinesUiState(
 // ==========================================
 // 2. VIEWMODEL
 // ==========================================
-class MedicinesViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = MedicareRepository(AppDatabase.getDatabase(application).medicareDao())
+@HiltViewModel
+class MedicinesViewModel @Inject constructor(
+    private val repository: MedicareRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MedicinesUiState(isLoading = true))
     val uiState: StateFlow<MedicinesUiState> = _uiState.asStateFlow()
@@ -57,8 +59,7 @@ class MedicinesViewModel(application: Application) : AndroidViewModel(applicatio
 
     private fun loadMedicines() {
         viewModelScope.launch {
-            repository.ensureDefaultProfile(1L)
-            repository.getMedicines(1L).collect { dbMedicines ->
+            repository.medicines.collect { dbMedicines ->
                 val allMapped = dbMedicines.map { item ->
                     val color = when (item.bottleColorIndex % 3) {
                         0 -> BottleColor.GREEN

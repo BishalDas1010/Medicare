@@ -29,10 +29,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.madicare.R
 import com.example.madicare.UI.PrimaryGreen
 import com.example.madicare.UI.TextGray
+import com.example.madicare.UI.Medicines.madicine_ADD.AddMedicineViewModel
+import com.example.madicare.UI.Medicines.madicine_ADD.AddMedicineUiState
 
 // --- UI Colors ---
 val FieldBgColor = Color(0xFFF5F6F8)
@@ -50,7 +52,7 @@ val bottleOptions = listOf(
 // ==========================================
 @Composable
 fun AddMedicineScreen(
-    viewModel: AddMedicineViewModel = viewModel(),
+    viewModel: AddMedicineViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()

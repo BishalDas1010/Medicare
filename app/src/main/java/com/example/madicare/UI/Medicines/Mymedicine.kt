@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.madicare.UI.PrimaryGreen
 import com.example.madicare.UI.TextGray
 
@@ -44,7 +44,7 @@ val ChipUnselectedBg = Color(0xFFF5F6F8)
 // ==========================================
 @Composable
 fun MyMedicinesScreen(
-    viewModel: MedicinesViewModel = viewModel(),
+    viewModel: MedicinesViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
     onAddClick: () -> Unit = {}
 ) {

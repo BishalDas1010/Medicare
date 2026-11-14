@@ -22,13 +22,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+
+// FIXED: Changed from androidx.hilt.lifecycle to androidx.hilt.navigation
+import androidx.hilt.navigation.compose.hiltViewModel
+
+// YOUR NEW IMPORTS
+import com.example.madicare.Data.HomeUiState
+import com.example.madicare.Data.Medicine
+import com.example.madicare.Ennum.MedicineStatus
 
 // --- Extracted Colors from Design ---
 val PrimaryBlue = Color(0xFF1E65E7)
@@ -44,9 +49,10 @@ val GrayUpcomingIconBg = Color(0xFFE5E7EB)
 val BorderColor = Color(0xFFE5E7EB)
 val BlueBorder = Color(0xFF3B82F6)
 
+// WHAT: The main entry point that connects Hilt to the UI
 @Composable
 fun MedicineAppScreen(
-    viewModel: HomeViewModel = viewModel(),
+    viewModel: HomeViewModel = hiltViewModel(),
     onScheduleClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -270,10 +276,11 @@ fun ProgressCard(taken: Int, total: Int, progressFraction: Float, nextTime: Stri
                         useCenter = false,
                         style = Stroke(width = strokeWidth)
                     )
+                    // WHAT: Removed the 0.33f fallback so it shows 0% when there's no data
                     drawArc(
                         color = PrimaryBlue,
                         startAngle = -90f,
-                        sweepAngle = 360f * (if(progressFraction == 0f) 0.33f else progressFraction),
+                        sweepAngle = 360f * progressFraction,
                         useCenter = false,
                         style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                     )
@@ -419,7 +426,6 @@ fun ScheduleItem(
                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(iconBg),
                         contentAlignment = Alignment.Center
                     ) {
-                        // Using standard icon to represent pill
                         Icon(Icons.Outlined.Medication, contentDescription = "Pill", tint = iconTint, modifier = Modifier.size(24.dp))
                     }
                     Spacer(modifier = Modifier.width(12.dp))

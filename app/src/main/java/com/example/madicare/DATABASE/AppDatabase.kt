@@ -46,64 +46,10 @@ abstract class AppDatabase : RoomDatabase() {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
                     CoroutineScope(Dispatchers.IO).launch {
-                      //  prepopulateDatabase(database.medicareDao())
+                        //  prepopulateDatabase(database.medicareDao())
                     }
                 }
             }
-
-//            suspend fun prepopulateDatabase(dao: MedicareDao) {
-//                val defaultProfile = ProfileEntity(
-//                    id = 1L,
-//                    person_Frist_nameval = "John",
-//                    person_Last_name = "Doe",
-//                    phoneNumber = "+1234567890",
-//                    emailaddress = "john.doe@example.com"
-//                )
-//                dao.insertProfile(defaultProfile)
-//
-//                dao.insertMedicine(
-//                    medicine_details(
-//                        userId = 1L,
-//                        medicineName = "Paracetamol",
-//                        strength = "500 mg",
-//                        totalTabletsInPack = 30,
-//                        remainingTablets = 20,
-//                        dosePerTime = "1 Tablet",
-//                        howOften = "Daily",
-//                        time = "7:00 AM",
-//                        bottleColorIndex = 0,
-//                        isTaken = true
-//                    )
-//                )
-//                dao.insertMedicine(
-//                    medicine_details(
-//                        userId = 1L,
-//                        medicineName = "Vitamin D3",
-//                        strength = "1000 IU",
-//                        totalTabletsInPack = 30,
-//                        remainingTablets = 15,
-//                        dosePerTime = "1 Tablet",
-//                        howOften = "Daily",
-//                        time = "12:00 PM",
-//                        bottleColorIndex = 1,
-//                        isTaken = false
-//                    )
-//                )
-//                dao.insertMedicine(
-//                    medicine_details(
-//                        userId = 1L,
-//                        medicineName = "BP Medicine",
-//                        strength = "5 mg",
-//                        totalTabletsInPack = 30,
-//                        remainingTablets = 8,
-//                        dosePerTime = "1 Tablet",
-//                        howOften = "Daily",
-//                        time = "6:00 PM",
-//                        bottleColorIndex = 2,
-//                        isTaken = false
-//                    )
-//                )
-//            }
         }
     }
 }

@@ -1,16 +1,16 @@
-package com.example.madicare.UI.Medicines
+package com.example.madicare.UI.Medicines.madicine_ADD
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.madicare.DATABASE.AppDatabase
 import com.example.madicare.DATABASE.MedicareRepository
 import com.example.madicare.DATABASE.medicine_details
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 // The state holds everything the UI needs to render
 data class AddMedicineUiState(
@@ -24,8 +24,10 @@ data class AddMedicineUiState(
     val selectedBottleId: Int = 0
 )
 
-class AddMedicineViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = MedicareRepository(AppDatabase.getDatabase(application).medicareDao())
+@HiltViewModel
+class AddMedicineViewModel @Inject constructor(
+    private val repository: MedicareRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddMedicineUiState())
     val uiState: StateFlow<AddMedicineUiState> = _uiState.asStateFlow()
