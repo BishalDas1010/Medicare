@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -29,7 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.madicare.R
 import com.example.madicare.UI.PrimaryGreen
 import com.example.madicare.UI.TextGray
@@ -39,12 +40,15 @@ import com.example.madicare.UI.Medicines.madicine_ADD.AddMedicineUiState
 // --- UI Colors ---
 val FieldBgColor = Color(0xFFF5F6F8)
 
-
 // Mock list of drawable resources (Replace with your actual R.drawable IDs)
 val bottleOptions = listOf(
-    R.drawable.buttle,
-    R.drawable.buttle, // e.g., R.drawable.buttle_orange
-    R.drawable.buttle  // e.g., R.drawable.buttle_red
+    R.drawable.bluebotttle,
+    R.drawable.bottle_orange,
+    R.drawable.bottle_yello,
+    R.drawable.buttle_blur,
+    R.drawable.buttle_pink,
+    R.drawable.buttlepuerple,
+    R.drawable.buttlered,
 )
 
 // ==========================================
@@ -57,6 +61,7 @@ fun AddMedicineScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showTimePicker by remember { mutableStateOf(false) }
+    var showFrequencyDialog by remember { mutableStateOf(false) }
 
     if (showTimePicker) {
         TimePickerDialog(
@@ -68,14 +73,27 @@ fun AddMedicineScreen(
         )
     }
 
+    if (showFrequencyDialog) {
+        FrequencyPickerDialog(
+            currentFrequency = uiState.frequency,
+            onDismiss = { showFrequencyDialog = false },
+            onSelect = { freq ->
+                viewModel.onFrequencyChange(freq)
+                showFrequencyDialog = false
+            }
+        )
+    }
+
     AddMedicineContent(
         uiState = uiState,
         onNameChange = viewModel::onNameChange,
         onStrengthChange = viewModel::onStrengthChange,
         onTotalTabletsChange = viewModel::onTotalTabletsChange,
         onDoseChange = viewModel::onDoseChange,
-        onBottleSelected = { viewModel.onBottleSelected(it) }, // Pass the new event
+        onFrequencyClick = { showFrequencyDialog = true },
+        onBottleSelected = { viewModel.onBottleSelected(it) },
         onAddTimeClick = { showTimePicker = true },
+        onRemoveTime = viewModel::removeTime,
         onSaveClick = { viewModel.onSaveClicked { onBackClick() } },
         onBackClick = onBackClick
     )
@@ -91,8 +109,10 @@ fun AddMedicineContent(
     onStrengthChange: (String) -> Unit,
     onTotalTabletsChange: (String) -> Unit,
     onDoseChange: (String) -> Unit,
-    onBottleSelected: (Int) -> Unit, // New parameter
+    onFrequencyClick: () -> Unit,
+    onBottleSelected: (Int) -> Unit,
     onAddTimeClick: () -> Unit,
+    onRemoveTime: (String) -> Unit,
     onSaveClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -153,7 +173,6 @@ fun AddMedicineContent(
             // --- Medicine Details Section ---
             SectionTitle("Medicine Details")
 
-            // NEW: Bottle Selection Row
             Text(text = "Select Bottle Icon", fontSize = 12.sp, color = TextGray, modifier = Modifier.padding(bottom = 8.dp))
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -201,12 +220,13 @@ fun AddMedicineContent(
             SectionTitle("Schedule")
 
             Text(text = "How often?", fontSize = 12.sp, color = TextGray, modifier = Modifier.padding(bottom = 4.dp))
-            val FieldBgColor = null
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
                     .clip(RoundedCornerShape(10.dp))
+                    .background(FieldBgColor)
+                    .clickable { onFrequencyClick() }
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -228,7 +248,7 @@ fun AddMedicineContent(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 uiState.times.forEach { time ->
-                    TimeChip(text = time)
+                    TimeChip(text = time, onDelete = { onRemoveTime(time) })
                 }
             }
 
@@ -259,7 +279,6 @@ fun AddMedicineContent(
 // 3. SUB-COMPONENTS
 // ==========================================
 
-// NEW: Bottle Item Composable
 @Composable
 fun BottleOptionItem(
     bottleId: Int,
@@ -268,7 +287,7 @@ fun BottleOptionItem(
 ) {
     Box(
         modifier = Modifier
-            .size(64.dp)
+            .size(80.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(if (isSelected) PrimaryGreen.copy(alpha = 0.1f) else FieldBgColor)
             .border(
@@ -282,8 +301,8 @@ fun BottleOptionItem(
         Icon(
             painter = painterResource(id = bottleId),
             contentDescription = "Bottle Option",
-            tint = Color.Unspecified, // Preserves original drawable colors
-            modifier = Modifier.size(36.dp)
+            tint = Color.Unspecified,
+            modifier = Modifier.size(60.dp)
         )
     }
 }
@@ -323,15 +342,66 @@ fun CustomTextField(label: String, value: String, onValueChange: (String) -> Uni
 }
 
 @Composable
-fun TimeChip(text: String) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(FieldBgColor)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+fun TimeChip(text: String, onDelete: () -> Unit) {
+    Surface(
+        color = FieldBgColor,
+        shape = RoundedCornerShape(20.dp)
     ) {
-        Text(text = text, fontSize = 12.sp, color = TextDark, fontWeight = FontWeight.Medium)
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = text, fontSize = 12.sp, color = TextDark, fontWeight = FontWeight.Medium)
+            Spacer(modifier = Modifier.width(6.dp))
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Delete time",
+                tint = TextGray,
+                modifier = Modifier
+                    .size(16.dp)
+                    .clickable { onDelete() }
+            )
+        }
     }
+}
+
+@Composable
+fun FrequencyPickerDialog(
+    currentFrequency: String,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    val frequencies = listOf("Daily", "Weekly", "Twice a week", "Monthly", "As needed")
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Frequency") },
+        text = {
+            Column {
+                frequencies.forEach { freq ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSelect(freq) }
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = freq == currentFrequency,
+                            onClick = { onSelect(freq) }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = freq, fontSize = 16.sp, color = TextDark)
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -396,7 +466,7 @@ fun PreviewAddMedicineScreen() {
         strength = "500 mg",
         totalTablets = "30",
         dosePerTime = "1 tablet",
-        selectedBottleId = R.drawable.buttle, // Set default mock
+        selectedBottleId = R.drawable.buttle_blur,
         times = listOf("8:00 AM", "8:00 PM")
     )
     MaterialTheme {
@@ -406,8 +476,10 @@ fun PreviewAddMedicineScreen() {
             onStrengthChange = {},
             onTotalTabletsChange = {},
             onDoseChange = {},
+            onFrequencyClick = {},
             onBottleSelected = {},
             onAddTimeClick = {},
+            onRemoveTime = {},
             onSaveClick = {},
             onBackClick = {}
         )

@@ -43,6 +43,10 @@ class AddMedicineViewModel @Inject constructor(
         _uiState.update { it.copy(times = it.times + time) }
     }
 
+    fun removeTime(time: String) {
+        _uiState.update { it.copy(times = it.times - time) }
+    }
+
     fun onSaveClicked(onSuccess: () -> Unit) {
         val state = _uiState.value
         if (state.medicineName.isBlank()) {

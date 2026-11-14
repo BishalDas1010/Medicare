@@ -47,9 +47,6 @@ kotlin {
 
 configurations.all {
     resolutionStrategy {
-        force("androidx.activity:activity:1.9.3")
-        force("androidx.activity:activity-ktx:1.9.3")
-        force("androidx.activity:activity-compose:1.9.3")
         force("com.google.dagger:hilt-android:2.57.1")
         force("com.google.dagger:hilt-android-compiler:2.57.1")
     }
@@ -58,8 +55,6 @@ configurations.all {
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
-    implementation("androidx.activity:activity:1.9.3")
-    implementation("androidx.activity:activity-ktx:1.9.3")
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

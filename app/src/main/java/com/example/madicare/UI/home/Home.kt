@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -31,9 +32,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 // YOUR NEW IMPORTS
+import com.example.madicare.Data.DayModel
 import com.example.madicare.Data.HomeUiState
 import com.example.madicare.Data.Medicine
 import com.example.madicare.Ennum.MedicineStatus
+import java.util.Date
 
 // --- Extracted Colors from Design ---
 val PrimaryBlue = Color(0xFF1E65E7)
@@ -59,7 +62,8 @@ fun MedicineAppScreen(
     HomeScreenContent(
         uiState = uiState,
         onMarkAsTaken = viewModel::markAsTaken,
-        onScheduleClick = onScheduleClick
+        onScheduleClick = onScheduleClick,
+        onDateSelected = viewModel::selectDate
     )
 }
 
@@ -67,7 +71,8 @@ fun MedicineAppScreen(
 fun HomeScreenContent(
     uiState: HomeUiState,
     onMarkAsTaken: (String) -> Unit = {},
-    onScheduleClick: () -> Unit = {}
+    onScheduleClick: () -> Unit = {},
+    onDateSelected: (Date) -> Unit = {}
 ) {
     if (uiState.isLoading) {
         Box(
@@ -87,18 +92,21 @@ fun HomeScreenContent(
                 TopBar()
                 Spacer(modifier = Modifier.height(24.dp))
 
-                DateHeader(dateString = uiState.dateString)
+                DateHeader(dateString = uiState.dateString, isToday = uiState.isToday)
                 Spacer(modifier = Modifier.height(16.dp))
-
-                WeekCalendar()
-                Spacer(modifier = Modifier.height(24.dp))
-
                 ProgressCard(
                     taken = uiState.medicinesTaken,
                     total = uiState.totalMedicines,
                     progressFraction = uiState.progressFraction,
                     nextTime = uiState.nextTime
                 )
+
+                Spacer(modifier = Modifier.height(24.dp))
+                WeekCalendar(
+                    weekDays = uiState.weekDays,
+                    onDayClick = { day -> onDateSelected(day.date) }
+                )
+
                 Spacer(modifier = Modifier.height(28.dp))
 
                 ScheduleHeader(total = uiState.totalMedicines)
@@ -194,7 +202,7 @@ fun TopBar() {
 }
 
 @Composable
-fun DateHeader(dateString: String) {
+fun DateHeader(dateString: String, isToday: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -206,33 +214,36 @@ fun DateHeader(dateString: String) {
             Icon(Icons.Outlined.CalendarToday, contentDescription = "Calendar", tint = PrimaryBlue, modifier = Modifier.size(20.dp))
         }
 
-        Surface(
-            color = LightBlueBg,
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = "Today",
-                color = PrimaryBlue,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-            )
+        if (isToday) {
+            Surface(
+                color = LightBlueBg,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    text = "Today",
+                    color = PrimaryBlue,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                )
+            }
         }
     }
 }
 
 @Composable
-fun WeekCalendar() {
-    val days = listOf("Sun\n16", "Mon\n17", "Tue\n18", "Wed\n19", "Thu\n20", "Fri\n21", "Sat\n22")
-
+fun WeekCalendar(
+    weekDays: List<DayModel>,
+    onDayClick: (DayModel) -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        days.forEachIndexed { index, day ->
-            val isSelected = index == 0
-            val bgColor = if (isSelected) PrimaryBlue else CardBg
-            val textColor = if (isSelected) Color.White else TextMain
+        weekDays.forEach { day ->
+            val bgColor = if (day.isSelected) PrimaryBlue else CardBg
+            val textColor = if (day.isSelected) Color.White else TextMain
+            val subTextColor = if (day.isSelected) Color.White.copy(alpha = 0.8f) else TextSub
 
             Column(
                 modifier = Modifier
@@ -240,13 +251,13 @@ fun WeekCalendar() {
                     .padding(horizontal = 2.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .background(bgColor)
+                    .clickable { onDayClick(day) }
                     .padding(vertical = 12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val parts = day.split("\n")
-                Text(text = parts[0], fontSize = 12.sp, color = if(isSelected) Color.White.copy(alpha=0.8f) else TextSub)
+                Text(text = day.dayName, fontSize = 12.sp, color = subTextColor)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = parts[1], fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textColor)
+                Text(text = day.dayNumber, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textColor)
             }
         }
     }
@@ -276,7 +287,6 @@ fun ProgressCard(taken: Int, total: Int, progressFraction: Float, nextTime: Stri
                         useCenter = false,
                         style = Stroke(width = strokeWidth)
                     )
-                    // WHAT: Removed the 0.33f fallback so it shows 0% when there's no data
                     drawArc(
                         color = PrimaryBlue,
                         startAngle = -90f,
@@ -461,6 +471,17 @@ fun PreviewMedicineAppScreen() {
     MaterialTheme {
         HomeScreenContent(
             uiState = HomeUiState(
+                dateString = "Sun, Mar 16, 2025",
+                isToday = true,
+                weekDays = listOf(
+                    DayModel("Sun", "16", "Sun, Mar 16, 2025", Date(), true),
+                    DayModel("Mon", "17", "Mon, Mar 17, 2025", Date(), false),
+                    DayModel("Tue", "18", "Tue, Mar 18, 2025", Date(), false),
+                    DayModel("Wed", "19", "Wed, Mar 19, 2025", Date(), false),
+                    DayModel("Thu", "20", "Thu, Mar 20, 2025", Date(), false),
+                    DayModel("Fri", "21", "Fri, Mar 21, 2025", Date(), false),
+                    DayModel("Sat", "22", "Sat, Mar 22, 2025", Date(), false)
+                ),
                 schedule = listOf(
                     Medicine("1", "My Medication 01", "1 Tablet • Daily", "7:00 AM", MedicineStatus.TAKEN),
                     Medicine("2", "My Medication 01", "1 Tablet • Daily", "12:00 PM", MedicineStatus.NEXT),
