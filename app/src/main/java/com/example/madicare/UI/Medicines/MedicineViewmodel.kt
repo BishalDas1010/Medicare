@@ -3,6 +3,7 @@ package com.example.madicare.UI.Medicines
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.madicare.DATABASE.MedicareRepository
+import com.example.madicare.DATABASE.medicine_details
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,17 +21,13 @@ enum class FilterType(val label: String) {
     COMPLETED("Completed")
 }
 
-enum class BottleColor {
-    GREEN, ORANGE, RED
-}
-
 data class MedicineItem(
     val id: String,
     val name: String,
     val description: String,
     val remaining: Int,
     val total: Int,
-    val bottleColor: BottleColor
+    val bottleDrawable: Int
 ) {
     val progress: Float get() = if (total > 0) remaining.toFloat() / total.toFloat() else 0f
     val percentage: String get() = "${(progress * 100).toInt()}%"
@@ -53,6 +50,8 @@ class MedicinesViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(MedicinesUiState(isLoading = true))
     val uiState: StateFlow<MedicinesUiState> = _uiState.asStateFlow()
 
+    private var allDbMedicines: List<medicine_details> = emptyList()
+
     init {
         loadMedicines()
     }
@@ -60,41 +59,42 @@ class MedicinesViewModel @Inject constructor(
     private fun loadMedicines() {
         viewModelScope.launch {
             repository.medicines.collect { dbMedicines ->
-                val allMapped = dbMedicines.map { item ->
-                    val color = when (item.bottleColorIndex % 3) {
-                        0 -> BottleColor.GREEN
-                        1 -> BottleColor.ORANGE
-                        else -> BottleColor.RED
-                    }
-                    val desc = buildString {
-                        if (!item.strength.isNullOrBlank()) append(item.strength)
-                        if (isNotEmpty()) append(" - ")
-                        append("${item.dosePerTime} ${item.howOften}")
-                    }
-                    MedicineItem(
-                        id = item.mediId.toString(),
-                        name = item.medicineName ?: "Medicine",
-                        description = desc,
-                        remaining = item.remainingTablets,
-                        total = item.totalTabletsInPack,
-                        bottleColor = color
-                    )
-                }
-
-                _uiState.update { currentState ->
-                    val filtered = when (currentState.selectedFilter) {
-                        FilterType.ALL -> allMapped
-                        FilterType.ACTIVE -> allMapped.filter { it.remaining > 0 }
-                        FilterType.COMPLETED -> allMapped.filter { it.remaining <= 0 }
-                    }
-                    currentState.copy(medicines = filtered, isLoading = false)
-                }
+                allDbMedicines = dbMedicines
+                updateFilteredMedicines()
             }
         }
     }
 
     fun onFilterSelected(filter: FilterType) {
         _uiState.update { it.copy(selectedFilter = filter) }
-        loadMedicines()
+        updateFilteredMedicines()
+    }
+
+    private fun updateFilteredMedicines() {
+        val allMapped = allDbMedicines.map { item ->
+            val bottleRes = if (item.bottleColorIndex != 0) item.bottleColorIndex else com.example.madicare.R.drawable.bluebotttle
+            val desc = buildString {
+                if (!item.strength.isNullOrBlank()) append(item.strength)
+                if (isNotEmpty()) append(" - ")
+                append("${item.dosePerTime} ${item.howOften}")
+            }
+            MedicineItem(
+                id = item.mediId.toString(),
+                name = item.medicineName ?: "Medicine",
+                description = desc,
+                remaining = item.remainingTablets,
+                total = item.totalTabletsInPack,
+                bottleDrawable = bottleRes
+            )
+        }
+
+        _uiState.update { currentState ->
+            val filtered = when (currentState.selectedFilter) {
+                FilterType.ALL -> allMapped
+                FilterType.ACTIVE -> allMapped.filter { it.remaining > 0 }
+                FilterType.COMPLETED -> allMapped.filter { it.remaining <= 0 }
+            }
+            currentState.copy(medicines = filtered, isLoading = false)
+        }
     }
 }

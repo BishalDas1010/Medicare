@@ -2,6 +2,7 @@ package com.example.madicare.UI.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,8 +41,6 @@ import com.example.madicare.Ennum.MedicineStatus
 import java.util.Date
 
 // --- Extracted Colors from Design ---
-val PrimaryBlue = Color(0xFF1E65E7)
-val LightBlueBg = Color(0xFFEFF6FF)
 val PrimaryGreen = Color(0xFF10B981)
 val LightGreenBg = Color(0xFFECFDF5)
 val TextMain = Color(0xFF111827)
@@ -50,20 +50,21 @@ val CardBg = Color.White
 val GrayUpcomingBg = Color(0xFFF3F4F6)
 val GrayUpcomingIconBg = Color(0xFFE5E7EB)
 val BorderColor = Color(0xFFE5E7EB)
-val BlueBorder = Color(0xFF3B82F6)
 
 // WHAT: The main entry point that connects Hilt to the UI
 @Composable
 fun MedicineAppScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onScheduleClick: () -> Unit = {}
+    onScheduleClick: () -> Unit = {},
+    onItemClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     HomeScreenContent(
         uiState = uiState,
         onMarkAsTaken = viewModel::markAsTaken,
         onScheduleClick = onScheduleClick,
-        onDateSelected = viewModel::selectDate
+        onDateSelected = viewModel::selectDate,
+        onItemClick = onItemClick
     )
 }
 
@@ -72,14 +73,15 @@ fun HomeScreenContent(
     uiState: HomeUiState,
     onMarkAsTaken: (String) -> Unit = {},
     onScheduleClick: () -> Unit = {},
-    onDateSelected: (Date) -> Unit = {}
+    onDateSelected: (Date) -> Unit = {},
+    onItemClick: (String) -> Unit = {}
 ) {
     if (uiState.isLoading) {
         Box(
             modifier = Modifier.fillMaxSize().background(ScreenBg),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = PrimaryBlue)
+            CircularProgressIndicator(color = PrimaryGreen)
         }
     } else {
         Box(modifier = Modifier.fillMaxSize().background(ScreenBg)) {
@@ -130,7 +132,7 @@ fun HomeScreenContent(
                     }
                 } else {
                     uiState.schedule.forEach { medicine ->
-                        ScheduleItem(medicine = medicine, onMarkAsTaken = onMarkAsTaken)
+                        ScheduleItem(medicine = medicine, onMarkAsTaken = onMarkAsTaken, onItemClick = { onItemClick(medicine.id) })
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
@@ -142,7 +144,7 @@ fun HomeScreenContent(
             // Floating Action Button
             ExtendedFloatingActionButton(
                 onClick = onScheduleClick,
-                containerColor = PrimaryBlue,
+                containerColor = PrimaryGreen,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(30.dp),
                 modifier = Modifier
@@ -173,7 +175,7 @@ fun TopBar() {
                 modifier = Modifier
                     .size(48.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(PrimaryBlue),
+                    .background(PrimaryGreen),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(Icons.Default.Add, contentDescription = "App Icon", tint = Color.White, modifier = Modifier.size(28.dp))
@@ -211,17 +213,17 @@ fun DateHeader(dateString: String, isToday: Boolean) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(text = dateString, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = TextMain)
             Spacer(modifier = Modifier.width(8.dp))
-            Icon(Icons.Outlined.CalendarToday, contentDescription = "Calendar", tint = PrimaryBlue, modifier = Modifier.size(20.dp))
+            Icon(Icons.Outlined.CalendarToday, contentDescription = "Calendar", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
         }
 
         if (isToday) {
             Surface(
-                color = LightBlueBg,
+                color = LightGreenBg,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
                     text = "Today",
-                    color = PrimaryBlue,
+                    color = PrimaryGreen,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
@@ -241,7 +243,7 @@ fun WeekCalendar(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         weekDays.forEach { day ->
-            val bgColor = if (day.isSelected) PrimaryBlue else CardBg
+            val bgColor = if (day.isSelected) PrimaryGreen else CardBg
             val textColor = if (day.isSelected) Color.White else TextMain
             val subTextColor = if (day.isSelected) Color.White.copy(alpha = 0.8f) else TextSub
 
@@ -281,21 +283,21 @@ fun ProgressCard(taken: Int, total: Int, progressFraction: Float, nextTime: Stri
                 Canvas(modifier = Modifier.size(70.dp)) {
                     val strokeWidth = 8.dp.toPx()
                     drawArc(
-                        color = LightBlueBg,
+                        color = LightGreenBg,
                         startAngle = -90f,
                         sweepAngle = 360f,
                         useCenter = false,
                         style = Stroke(width = strokeWidth)
                     )
                     drawArc(
-                        color = PrimaryBlue,
+                        color = PrimaryGreen,
                         startAngle = -90f,
                         sweepAngle = 360f * progressFraction,
                         useCenter = false,
                         style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                     )
                 }
-                Icon(Icons.Outlined.Medication, contentDescription = "Pill", tint = PrimaryBlue, modifier = Modifier.size(28.dp))
+                Icon(Icons.Outlined.Medication, contentDescription = "Pill", tint = PrimaryGreen, modifier = Modifier.size(28.dp))
             }
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -317,10 +319,10 @@ fun ProgressCard(taken: Int, total: Int, progressFraction: Float, nextTime: Stri
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(LightBlueBg),
+                        .background(LightGreenBg),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Outlined.CalendarToday, contentDescription = "Calendar", tint = PrimaryBlue, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Outlined.CalendarToday, contentDescription = "Calendar", tint = PrimaryGreen, modifier = Modifier.size(20.dp))
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "Next at", fontSize = 12.sp, color = TextSub)
@@ -338,10 +340,10 @@ fun ScheduleHeader(total: Int) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(text = "Today's Schedule", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextMain)
-        Surface(color = LightBlueBg, shape = RoundedCornerShape(16.dp)) {
+        Surface(color = LightGreenBg, shape = RoundedCornerShape(16.dp)) {
             Text(
                 text = "$total medications",
-                color = PrimaryBlue,
+                color = PrimaryGreen,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -353,22 +355,23 @@ fun ScheduleHeader(total: Int) {
 @Composable
 fun ScheduleItem(
     medicine: Medicine,
-    onMarkAsTaken: (String) -> Unit = {}
+    onMarkAsTaken: (String) -> Unit = {},
+    onItemClick: (String) -> Unit = {}
 ) {
     val bgColor = when (medicine.status) {
         MedicineStatus.TAKEN -> LightGreenBg
         MedicineStatus.NEXT -> CardBg
         MedicineStatus.UPCOMING -> GrayUpcomingBg
     }
-    val borderColor = if (medicine.status == MedicineStatus.NEXT) BlueBorder else Color.Transparent
+    val borderColor = if (medicine.status == MedicineStatus.NEXT) PrimaryGreen else Color.Transparent
     val iconTint = when (medicine.status) {
         MedicineStatus.TAKEN -> PrimaryGreen
-        MedicineStatus.NEXT -> PrimaryBlue
+        MedicineStatus.NEXT -> PrimaryGreen
         MedicineStatus.UPCOMING -> TextSub
     }
     val iconBg = when (medicine.status) {
         MedicineStatus.TAKEN -> PrimaryGreen.copy(alpha = 0.2f)
-        MedicineStatus.NEXT -> LightBlueBg
+        MedicineStatus.NEXT -> LightGreenBg
         MedicineStatus.UPCOMING -> GrayUpcomingIconBg
     }
     val icon = when (medicine.status) {
@@ -381,7 +384,7 @@ fun ScheduleItem(
         colors = CardDefaults.cardColors(containerColor = bgColor),
         shape = RoundedCornerShape(20.dp),
         border = if (medicine.status == MedicineStatus.NEXT) BorderStroke(1.5.dp, borderColor) else null,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth().clickable { onItemClick(medicine.id) }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header Row
@@ -413,8 +416,8 @@ fun ScheduleItem(
                         }
                     }
                     MedicineStatus.NEXT -> {
-                        Surface(color = LightBlueBg, shape = RoundedCornerShape(12.dp)) {
-                            Text("Next", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
+                        Surface(color = LightGreenBg, shape = RoundedCornerShape(12.dp)) {
+                            Text("Next", color = PrimaryGreen, fontSize = 12.sp, fontWeight = FontWeight.Medium, modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp))
                         }
                     }
                     MedicineStatus.UPCOMING -> {
@@ -436,7 +439,11 @@ fun ScheduleItem(
                         modifier = Modifier.size(48.dp).clip(RoundedCornerShape(12.dp)).background(iconBg),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Outlined.Medication, contentDescription = "Pill", tint = iconTint, modifier = Modifier.size(24.dp))
+                        Image(
+                            painter = painterResource(id = medicine.bottleDrawable),
+                            contentDescription = "Pill Bottle",
+                            modifier = Modifier.size(36.dp)
+                        )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
@@ -452,7 +459,7 @@ fun ScheduleItem(
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(
                     onClick = { onMarkAsTaken(medicine.id) },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().height(44.dp)
                 ) {

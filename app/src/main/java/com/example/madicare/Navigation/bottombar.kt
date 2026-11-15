@@ -48,6 +48,9 @@ sealed class Screen(
     object Family : Screen("family", "Family", Icons.Outlined.People)
     object More : Screen("more", "More", Icons.Outlined.MoreHoriz)
     object AddMedicine : Screen("add_medicine", "Add Medicine", Icons.Filled.Home)
+    object MedicineDetails : Screen("medicine_details/{medicineId}", "Medicine Details", Icons.Filled.Home) {
+        fun createRoute(medicineId: String) = "medicine_details/$medicineId"
+    }
 }
 
 // List of all tabs

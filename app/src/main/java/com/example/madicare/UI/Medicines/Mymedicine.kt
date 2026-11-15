@@ -1,5 +1,6 @@
 package com.example.madicare.UI.Medicines
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,7 +34,6 @@ import com.example.madicare.UI.TextGray
 // 1. UI COLORS
 // ==========================================
 val ProgressGreen = Color(0xFF34A853)
-val ProgressRed = Color(0xFFFF6B6B)
 val ProgressBg = Color(0xFFF3F4F6)
 val TextDark = Color(0xFF1A1A1A)
 val BorderColor = Color(0xFFF3F4F6)
@@ -46,7 +47,8 @@ val ChipUnselectedBg = Color(0xFFF5F6F8)
 fun MyMedicinesScreen(
     viewModel: MedicinesViewModel = hiltViewModel(),
     onBackClick: () -> Unit = {},
-    onAddClick: () -> Unit = {}
+    onAddClick: () -> Unit = {},
+    onItemClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -54,7 +56,8 @@ fun MyMedicinesScreen(
         uiState = uiState,
         onFilterSelected = viewModel::onFilterSelected,
         onBackClick = onBackClick,
-        onAddClick = onAddClick
+        onAddClick = onAddClick,
+        onItemClick = onItemClick
     )
 }
 
@@ -66,7 +69,8 @@ fun MyMedicinesContent(
     uiState: MedicinesUiState,
     onFilterSelected: (FilterType) -> Unit,
     onBackClick: () -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
+    onItemClick: (String) -> Unit = {}
 ) {
     Scaffold(
         containerColor = Color.White,
@@ -142,7 +146,7 @@ fun MyMedicinesContent(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(uiState.medicines) { medicine ->
-                    MedicineCard(medicine = medicine)
+                    MedicineCard(medicine = medicine, onClick = { onItemClick(medicine.id) })
                 }
             }
         }
@@ -171,13 +175,14 @@ fun FilterChip(text: String, isSelected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun MedicineCard(medicine: MedicineItem) {
+fun MedicineCard(medicine: MedicineItem, onClick: () -> Unit = {}) {
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
             .border(1.dp, BorderColor, RoundedCornerShape(16.dp))
+            .clickable { onClick() }
     ) {
         Row(
             modifier = Modifier
@@ -185,8 +190,12 @@ fun MedicineCard(medicine: MedicineItem) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Custom Pill Bottle Icon
-            PillBottleIcon(bottleColor = medicine.bottleColor)
+            // Selected Pill Bottle Icon
+            Image(
+                painter = painterResource(id = medicine.bottleDrawable),
+                contentDescription = "Bottle Icon",
+                modifier = Modifier.size(48.dp)
+            )
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -218,13 +227,7 @@ fun MedicineCard(medicine: MedicineItem) {
                                 .fillMaxHeight()
                                 .fillMaxWidth(medicine.progress)
                                 .clip(RoundedCornerShape(3.dp))
-                                .background(
-                                    when (medicine.bottleColor) {
-                                        BottleColor.GREEN -> ProgressGreen
-                                        BottleColor.ORANGE -> ProgressGreen
-                                        BottleColor.RED -> ProgressRed
-                                    }
-                                )
+                                .background(ProgressGreen)
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -249,52 +252,6 @@ fun MedicineCard(medicine: MedicineItem) {
     }
 }
 
-// A simple custom composable to draw a pill bottle using standard shapes
-@Composable
-fun PillBottleIcon(bottleColor: BottleColor) {
-    val capColor = when (bottleColor) {
-        BottleColor.GREEN -> Color(0xFF006644)
-        BottleColor.ORANGE -> Color(0xFFFFA500)
-        BottleColor.RED -> Color(0xFFD32F2F)
-    }
-    val bodyColor = when (bottleColor) {
-        BottleColor.GREEN -> Color(0xFFFFF3E0)
-        BottleColor.ORANGE -> Color(0xFFFFF8E1)
-        BottleColor.RED -> Color(0xFFFFEBEE)
-    }
-
-    Box(
-        modifier = Modifier
-            .size(width = 48.dp, height = 64.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        // Cap
-        Box(
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .size(width = 28.dp, height = 12.dp)
-                .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp))
-                .background(capColor)
-        )
-        // Body
-        Box(
-            modifier = Modifier
-                .padding(top = 14.dp)
-                .size(width = 40.dp, height = 50.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(bodyColor)
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(8.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            // Pills inside
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(capColor.copy(alpha = 0.3f)))
-                Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(capColor.copy(alpha = 0.3f)).offset(y = 6.dp))
-            }
-        }
-    }
-}
-
 // ==========================================
 // 5. PREVIEW
 // ==========================================
@@ -303,9 +260,9 @@ fun PillBottleIcon(bottleColor: BottleColor) {
 fun PreviewMyMedicinesScreen() {
     val dummyState = MedicinesUiState(
         medicines = listOf(
-            MedicineItem("1", "Paracetamol", "500 mg - 1 tablet daily", 20, 30, BottleColor.GREEN),
-            MedicineItem("2", "Vitamin D3", "1000 IU - 1 tablet daily", 15, 30, BottleColor.ORANGE),
-            MedicineItem("3", "BP Medicine", "Amlodipine 5 mg - 1 tablet", 8, 30, BottleColor.RED)
+            MedicineItem("1", "Paracetamol", "500 mg - 1 tablet daily", 20, 30, com.example.madicare.R.drawable.bluebotttle),
+            MedicineItem("2", "Vitamin D3", "1000 IU - 1 tablet daily", 15, 30, com.example.madicare.R.drawable.bottle_orange),
+            MedicineItem("3", "BP Medicine", "Amlodipine 5 mg - 1 tablet", 8, 30, com.example.madicare.R.drawable.buttlered)
         )
     )
     MaterialTheme {

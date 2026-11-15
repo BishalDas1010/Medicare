@@ -70,12 +70,14 @@ class HomeViewModel @Inject constructor(
                 }
                 else -> MedicineStatus.UPCOMING
             }
+            val bottleRes = if (item.bottleColorIndex != 0) item.bottleColorIndex else com.example.madicare.R.drawable.bluebotttle
             Medicine(
                 id = item.mediId.toString(),
                 name = item.medicineName ?: "Medicine",
                 dosage = "${item.dosePerTime} • ${item.howOften}",
                 time = item.time,
-                status = status
+                status = status,
+                bottleDrawable = bottleRes
             )
         }
 

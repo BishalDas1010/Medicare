@@ -8,5 +8,6 @@ data class Medicine(
     val name: String,
     val dosage: String,
     val time: String,
-    val status: MedicineStatus
+    val status: MedicineStatus,
+    val bottleDrawable: Int = com.example.madicare.R.drawable.bluebotttle
 )

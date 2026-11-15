@@ -6,12 +6,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.madicare.UI.Medicines.AddMedicineScreen
 import com.example.madicare.UI.Medicines.MyMedicinesScreen
 import com.example.madicare.UI.home.MedicineAppScreen
+import com.example.madicare.UI.medicineDetails.MedicationScreen
 
 @Composable
 fun MainAppScreen() {
@@ -29,17 +32,28 @@ fun MainAppScreen() {
         ) {
             composable(Screen.Home.route) {
                 MedicineAppScreen(
-                    onScheduleClick = { navController.navigate(Screen.AddMedicine.route) }
+                    onScheduleClick = { navController.navigate(Screen.AddMedicine.route) },
+                    onItemClick = { medicineId -> navController.navigate(Screen.MedicineDetails.createRoute(medicineId)) }
                 )
             }
             composable(Screen.Medicines.route) {
                 MyMedicinesScreen(
-                    onAddClick = { navController.navigate(Screen.AddMedicine.route) }
+                    onAddClick = { navController.navigate(Screen.AddMedicine.route) },
+                    onItemClick = { medicineId -> navController.navigate(Screen.MedicineDetails.createRoute(medicineId)) }
                 )
             }
             composable(Screen.AddMedicine.route) {
                 AddMedicineScreen(
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = Screen.MedicineDetails.route,
+                arguments = listOf(navArgument("medicineId") { type = NavType.StringType })
+            ) {
+                MedicationScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onEditClick = { navController.navigate(Screen.AddMedicine.route) }
                 )
             }
             composable(Screen.Reports.route) {
