@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
     <application
         android:name=".MadicareApplication"
         android:allowBackup="true"
@@ -24,6 +30,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".UI.alarm.AlarmActivity"
+            android:exported="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/Theme.Madicare" />
+
+        <receiver
+            android:name=".notification.MedicineAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="com.example.madicare.ACTION_MEDICINE_ALARM" />
+                <action android:name="com.example.madicare.ACTION_PRE_REMINDER" />
+                <action android:name="com.example.madicare.ACTION_TAKEN" />
+                <action android:name="com.example.madicare.ACTION_NOT_TAKEN" />
+                <action android:name="com.example.madicare.ACTION_SNOOZE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

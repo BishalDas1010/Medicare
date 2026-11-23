@@ -44,4 +44,40 @@ class MedicareRepository @Inject constructor(
     suspend fun deleteMedicine(medicine: medicine_details) {
         dao.deleteMedicine(medicine = medicine)
     }
+
+    // --- Testing & Event Logging ---
+    val testResults: Flow<List<TestResultEntity>> = dao.getAllTestResults()
+    val eventLogs: Flow<List<ReminderEventLogEntity>> = dao.getAllReminderEventLogs()
+
+    suspend fun saveTestResult(testId: String, testName: String, status: String, executionTime: Long, errorMessage: String? = null) {
+        dao.insertOrUpdateTestResult(
+            TestResultEntity(
+                testId = testId,
+                testName = testName,
+                status = status,
+                executionTime = executionTime,
+                errorMessage = errorMessage
+            )
+        )
+    }
+
+    suspend fun logEvent(eventType: String, details: String, isSuccess: Boolean = true) {
+        dao.insertEventLog(
+            ReminderEventLogEntity(
+                timestamp = System.currentTimeMillis(),
+                eventType = eventType,
+                details = details,
+                isSuccess = isSuccess
+            )
+        )
+    }
+
+    suspend fun clearTestResultsAndLogs() {
+        dao.clearTestResults()
+        dao.clearEventLogs()
+    }
+
+    suspend fun updateMedicineTaken(medicineId: Long, isTaken: Boolean) {
+        dao.updateMedicineTakenStatus(medicineId, isTaken)
+    }
 }

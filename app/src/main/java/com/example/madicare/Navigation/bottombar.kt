@@ -53,6 +53,7 @@ sealed class Screen(
     object MedicineDetails : Screen("medicine_details/{medicineId}", "Medicine Details", Icons.Filled.Home) {
         fun createRoute(medicineId: String) = "medicine_details/$medicineId"
     }
+    object ReminderTest : Screen("reminder_test", "Test Center", Icons.Outlined.Assignment)
 }
 
 // List of all tabs

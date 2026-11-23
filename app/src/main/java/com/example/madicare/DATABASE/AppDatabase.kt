@@ -14,9 +14,11 @@ import kotlinx.coroutines.launch
         ProfileEntity::class,
         medicine_details::class,
         HealthInfoEntity::class,
-        DoctorVisitEntity::class
+        DoctorVisitEntity::class,
+        TestResultEntity::class,
+        ReminderEventLogEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

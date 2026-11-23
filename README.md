@@ -48,6 +48,23 @@ Madicare follows Android's recommended **MVVM (Model-View-ViewModel)** architect
 
 ---
 
+## ⚡ Understanding Hilt in Easy English
+
+**Hilt** is the **automatic delivery assistant** (Dependency Injection framework) for your Android app.
+
+### 💡 Analogy
+- ❌ **Without Hilt**: Whenever a screen needs data, you must manually create the Database, create the DAO, create the Repository, and pass them into the ViewModel step-by-step.
+- ✅ **With Hilt**: Hilt builds all required objects automatically behind the scenes! Your screen simply asks for a ViewModel with 1 line of code: `val viewModel: HomeViewModel = hiltViewModel()`.
+
+### 🛠️ How Hilt is used in Madicare
+1. **`MadicareApplication.kt` (`@HiltAndroidApp`)**: Initializes Hilt when the app launches.
+2. **`DatabaseModule.kt` (`@Module`, `@Provides`, `@Singleton`)**: Teaches Hilt how to create the `AppDatabase` and `MedicareDao` instances.
+3. **`MedicareRepository.kt` (`@Inject constructor`)**: Tells Hilt to automatically pass `MedicareDao` into the Repository.
+4. **`HomeViewModel.kt` (`@HiltViewModel`, `@Inject`)**: Tells Hilt to automatically pass `MedicareRepository` into the ViewModels.
+5. **`MainActivity.kt` (`@AndroidEntryPoint`)**: Allows Hilt to connect dependencies into your Activity and Compose UI screens.
+
+---
+
 ## 🧱 Key Layers & Components
 
 ### 1. 🗄️ Database Layer (`DATABASE/`)

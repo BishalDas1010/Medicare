@@ -47,4 +47,24 @@ interface MedicareDao {
 
     @androidx.room.Delete
     suspend fun deleteMedicine(medicine: medicine_details)
+
+    // --- Test Results ---
+    @Query("SELECT * FROM test_results")
+    fun getAllTestResults(): Flow<List<TestResultEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateTestResult(result: TestResultEntity)
+
+    @Query("DELETE FROM test_results")
+    suspend fun clearTestResults()
+
+    // --- Reminder Event Logs ---
+    @Query("SELECT * FROM reminder_event_logs ORDER BY timestamp DESC")
+    fun getAllReminderEventLogs(): Flow<List<ReminderEventLogEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertEventLog(log: ReminderEventLogEntity)
+
+    @Query("DELETE FROM reminder_event_logs")
+    suspend fun clearEventLogs()
 }

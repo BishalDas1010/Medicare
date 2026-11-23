@@ -270,7 +270,7 @@ fun AddMedicineContent(
                     label = "Strength (e.g. 500 mg)",
                     value = uiState.strength,
                     onValueChange = onStrengthChange,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1.2f)
                 )
                 DosageFormDropdown(
                     selectedForm = uiState.dosageForm,
@@ -341,8 +341,24 @@ fun AddMedicineContent(
                             Icon(Icons.Outlined.Medication, contentDescription = null, tint = PrimaryGreen)
                             Spacer(modifier = Modifier.width(8.dp))
                             Column {
-                                Text("Daily Intake (Dosing)", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = TextDark)
-                                Text("Dosage per intake and daily frequency", fontSize = 12.sp, color = TextGray)
+                                Text(
+                                    "Daily Intake (Dosing)",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = TextDark
+                                )
+                                Column() {
+                                    Text(
+                                        "Dosage per intake",
+                                        fontSize = 12.sp,
+                                        color = TextGray
+                                    )
+                                    Text(
+                                        "& daily frequency",
+                                        fontSize = 12.sp,
+                                        color = TextGray
+                                    )
+                                }
                             }
                         }
                         Surface(

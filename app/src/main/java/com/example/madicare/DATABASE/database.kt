@@ -73,3 +73,21 @@ data class DoctorVisitEntity(
     val prescriptionUri: String?,
     val drAddress: String?
 )
+
+@Entity(tableName = "test_results")
+data class TestResultEntity(
+    @PrimaryKey val testId: String,
+    val testName: String,
+    val status: String, // "NOT_TESTED", "RUNNING", "PASSED", "FAILED"
+    val executionTime: Long,
+    val errorMessage: String? = null
+)
+
+@Entity(tableName = "reminder_event_logs")
+data class ReminderEventLogEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val timestamp: Long,
+    val eventType: String,
+    val details: String,
+    val isSuccess: Boolean
+)

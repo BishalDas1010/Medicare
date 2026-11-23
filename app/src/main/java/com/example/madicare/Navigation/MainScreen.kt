@@ -74,7 +74,7 @@ fun MainAppScreen() {
                 Text("Family Screen")
             }
             composable(Screen.More.route) {
-                Text("More Screen")
+                com.example.madicare.UI.ReminderTest.ReminderTestScreen()
             }
         }
     }
