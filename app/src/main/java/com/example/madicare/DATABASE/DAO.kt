@@ -42,6 +42,9 @@ interface MedicareDao {
     @Query("UPDATE Medicine_details SET isTaken = :isTaken WHERE mediId = :medicineId")
     suspend fun updateMedicineTakenStatus(medicineId: Long, isTaken: Boolean)
 
+    @Query("UPDATE Medicine_details SET remainingTablets = :remaining WHERE mediId = :medicineId")
+    suspend fun updateRemainingTablets(medicineId: Long, remaining: Int)
+
     @androidx.room.Delete
     suspend fun deleteMedicine(medicine: medicine_details)
 }

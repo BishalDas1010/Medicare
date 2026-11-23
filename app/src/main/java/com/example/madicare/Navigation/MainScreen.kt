@@ -11,10 +11,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.madicare.UI.Medicines.AddMedicineScreen
 import com.example.madicare.UI.Medicines.MyMedicinesScreen
+import com.example.madicare.UI.Medicines.madicine_ADD.AddMedicineScreen
 import com.example.madicare.UI.home.MedicineAppScreen
-import com.example.madicare.UI.medicineDetails.MedicationScreen
+import com.example.madicare.UI.MedicineDetails.MedicineDetailsScreen
 
 @Composable
 fun MainAppScreen() {
@@ -32,17 +32,27 @@ fun MainAppScreen() {
         ) {
             composable(Screen.Home.route) {
                 MedicineAppScreen(
-                    onScheduleClick = { navController.navigate(Screen.AddMedicine.route) },
+                    onScheduleClick = { navController.navigate(Screen.AddMedicine.createRoute()) },
                     onItemClick = { medicineId -> navController.navigate(Screen.MedicineDetails.createRoute(medicineId)) }
                 )
             }
             composable(Screen.Medicines.route) {
                 MyMedicinesScreen(
-                    onAddClick = { navController.navigate(Screen.AddMedicine.route) },
-                    onItemClick = { medicineId -> navController.navigate(Screen.MedicineDetails.createRoute(medicineId)) }
+                    onAddClick = { navController.navigate(Screen.AddMedicine.createRoute()) },
+                    onItemClick = { medicineId -> navController.navigate(Screen.MedicineDetails.createRoute(medicineId)) },
+
+                    onBackClick = {
+                        navController.navigate(Screen.Home.route)
+                    }
                 )
             }
-            composable(Screen.AddMedicine.route) {
+            composable(
+                route = Screen.AddMedicine.route,
+                arguments = listOf(navArgument("medicineId") {
+                    type = NavType.LongType
+                    defaultValue = -1L
+                })
+            ) {
                 AddMedicineScreen(
                     onBackClick = { navController.popBackStack() }
                 )
@@ -51,9 +61,10 @@ fun MainAppScreen() {
                 route = Screen.MedicineDetails.route,
                 arguments = listOf(navArgument("medicineId") { type = NavType.StringType })
             ) {
-                MedicationScreen(
+                MedicineDetailsScreen(
                     onBackClick = { navController.popBackStack() },
-                    onEditClick = { navController.navigate(Screen.AddMedicine.route) }
+                    onEditClick = { medicineId -> navController.navigate(Screen.AddMedicine.createRoute(medicineId.toLongOrNull() ?: -1L)) },
+                    onDeleted = { navController.popBackStack() }
                 )
             }
             composable(Screen.Reports.route) {

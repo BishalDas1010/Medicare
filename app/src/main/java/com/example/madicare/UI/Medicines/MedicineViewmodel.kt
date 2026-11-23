@@ -27,7 +27,8 @@ data class MedicineItem(
     val description: String,
     val remaining: Int,
     val total: Int,
-    val bottleDrawable: Int
+    val bottleDrawable: Int,
+    val pillColorHex: Long = 0xFFFFA500
 ) {
     val progress: Float get() = if (total > 0) remaining.toFloat() / total.toFloat() else 0f
     val percentage: String get() = "${(progress * 100).toInt()}%"
@@ -74,9 +75,8 @@ class MedicinesViewModel @Inject constructor(
         val allMapped = allDbMedicines.map { item ->
             val bottleRes = if (item.bottleColorIndex != 0) item.bottleColorIndex else com.example.madicare.R.drawable.bluebotttle
             val desc = buildString {
-                if (!item.strength.isNullOrBlank()) append(item.strength)
-                if (isNotEmpty()) append(" - ")
-                append("${item.dosePerTime} ${item.howOften}")
+                if (!item.strength.isNullOrBlank()) append("${item.strength} • ")
+                append("${item.dosePerTime} × ${item.timesPerDay} daily")
             }
             MedicineItem(
                 id = item.mediId.toString(),
@@ -84,7 +84,8 @@ class MedicinesViewModel @Inject constructor(
                 description = desc,
                 remaining = item.remainingTablets,
                 total = item.totalTabletsInPack,
-                bottleDrawable = bottleRes
+                bottleDrawable = bottleRes,
+                pillColorHex = if (item.pillColorHex != 0L) item.pillColorHex else 0xFFFFA500
             )
         }
 

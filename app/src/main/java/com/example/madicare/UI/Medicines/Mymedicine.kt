@@ -23,10 +23,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.example.madicare.R
 import com.example.madicare.UI.PrimaryGreen
 import com.example.madicare.UI.TextGray
 
@@ -140,13 +142,19 @@ fun MyMedicinesContent(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Medicine List
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(uiState.medicines) { medicine ->
-                    MedicineCard(medicine = medicine, onClick = { onItemClick(medicine.id) })
+            if (uiState.medicines.isEmpty()) {
+                EmptyMedicinesState(modifier = Modifier.fillMaxSize())
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(uiState.medicines) { medicine ->
+                        MedicineCard(
+                            medicine = medicine,
+                            onClick = { onItemClick(medicine.id) }
+                        )
+                    }
                 }
             }
         }
@@ -190,12 +198,20 @@ fun MedicineCard(medicine: MedicineItem, onClick: () -> Unit = {}) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Selected Pill Bottle Icon
-            Image(
-                painter = painterResource(id = medicine.bottleDrawable),
-                contentDescription = "Bottle Icon",
-                modifier = Modifier.size(48.dp)
-            )
+            // Selected Pill Bottle Icon with pill color background
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(Color(medicine.pillColorHex).copy(alpha = 0.2f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = medicine.bottleDrawable),
+                    contentDescription = "Bottle Icon",
+                    modifier = Modifier.size(40.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -222,12 +238,17 @@ fun MedicineCard(medicine: MedicineItem, onClick: () -> Unit = {}) {
                             .clip(RoundedCornerShape(3.dp))
                             .background(ProgressBg)
                     ) {
+                        val progressColor = when {
+                            medicine.progress > 0.5f -> Color(0xFF34A853)
+                            medicine.progress > 0.2f -> Color(0xFFFBBC05)
+                            else -> Color(0xFFEA4335)
+                        }
                         Box(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .fillMaxWidth(medicine.progress)
                                 .clip(RoundedCornerShape(3.dp))
-                                .background(ProgressGreen)
+                                .background(progressColor)
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
@@ -249,6 +270,41 @@ fun MedicineCard(medicine: MedicineItem, onClick: () -> Unit = {}) {
                 tint = TextGray
             )
         }
+    }
+}
+
+// emapty medicne screen
+@Composable
+fun EmptyMedicinesState(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.finishgray),
+            contentDescription = "No medicines",
+            modifier = Modifier.size(180.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "No medicines yet",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextDark,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = "You haven't added any medicines.",
+            fontSize = 13.sp,
+            color = TextGray,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

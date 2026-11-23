@@ -1,7 +1,6 @@
 package com.example.madicare.DATABASE
 
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
@@ -19,35 +18,39 @@ data class ProfileEntity(
     val emailaddress: String,
 )
 
-
 @Entity(
     tableName = "Medicine_details",
-    foreignKeys = [ForeignKey(
-        entity = ProfileEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["userId"],
-        onDelete = ForeignKey.CASCADE
-    )],
     indices = [Index("userId")]
 )
 data class medicine_details(
     @PrimaryKey(autoGenerate = true)
     val mediId: Long = 0,
-    val userId: Long,
-    val medicineName: String?,
-    val strength: String?,
-    val totalTabletsInPack: Int,
-    val remainingTablets: Int = totalTabletsInPack,
-    val dosePerTime: String,
-    val howOften: String,
-    val time: String,
-    val bottleColorIndex: Int = 0,
-    val isTaken: Boolean = false
+    val userId: Long = 1L,
+    val medicineName: String? = null,
+    val strength: String? = null,
+    val dosageForm: String = "Tablet",
+    val totalTabletsInPack: Int = 30,
+    val remainingTablets: Int = 30,
+    val quantityUnit: String = "Tablets",
+    val dosePerTime: String = "1 tablet",
+    val takeAmount: Int = 1,
+    val timesPerDay: Int = 1,
+    val howOften: String = "Every day",
+    val selectedDays: String = "",
+    val time: String = "8:00 AM",
+    val doseTimesJson: String = "8:00 AM",
+    val bottleColorIndex: Int = com.example.madicare.R.drawable.bluebotttle,
+    val pillColorHex: Long = 0xFFFFA500,
+    val treatmentDurationOption: Int = 0,
+    val startDate: String = "",
+    val endDate: String = "",
+    val notes: String = "",
+    val isTaken: Boolean = false,
+    val historyLogsJson: String = ""
 )
 
 @Entity(tableName = "health_info")
 data class HealthInfoEntity(
-    // WHY: We use userId as the PrimaryKey here (not autoGenerate) because it's a 1-to-1 relationship. One user = One health record.
     @PrimaryKey val userId: Long,
     val bloodGroup: String?,
     val height: String?,
@@ -56,20 +59,11 @@ data class HealthInfoEntity(
     val existingMedicineCondition: String?
 )
 
-@Entity(
-    tableName = "doctor_visits",
-    foreignKeys = [ForeignKey(
-        entity = ProfileEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["userId"],
-        onDelete = ForeignKey.CASCADE
-    )],
-    indices = [Index("userId")]
-)
+@Entity(tableName = "doctor_visits")
 data class DoctorVisitEntity(
     @PrimaryKey(autoGenerate = true) val visitId: Long = 0,
-    val userId: Long, // WHAT: Links this visit to the specific user
-    val drName: String, // Note: Changed from PK in your diagram to a normal column to allow multiple visits to same doctor
+    val userId: Long,
+    val drName: String,
     val specialization: String,
     val hospitalNameClinic: String,
     val drEmail: String?,

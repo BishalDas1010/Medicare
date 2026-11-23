@@ -19,6 +19,10 @@ class MedicareRepository @Inject constructor(
         dao.updateMedicineTakenStatus(medicineId = medicineId, isTaken = true)
     }
 
+    suspend fun updateRemainingTablets(medicineId: Long, remaining: Int) {
+        dao.updateRemainingTablets(medicineId, remaining)
+    }
+
     suspend fun insertMedicine(medicine: medicine_details): Long {
         // Ensure default profile exists to satisfy foreign key constraint
         val existingProfile = dao.getProfile(currentUserId).firstOrNull()

@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
         HealthInfoEntity::class,
         DoctorVisitEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -46,7 +46,7 @@ abstract class AppDatabase : RoomDatabase() {
                 super.onCreate(db)
                 INSTANCE?.let { database ->
                     CoroutineScope(Dispatchers.IO).launch {
-                        //  prepopulateDatabase(database.medicareDao())
+                        // DB created
                     }
                 }
             }

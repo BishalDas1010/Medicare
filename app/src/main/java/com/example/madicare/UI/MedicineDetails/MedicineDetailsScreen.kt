@@ -16,9 +16,7 @@ import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
 // --- UI Colors ---
 val PrimaryGreen = Color(0xFF1A9E56)
@@ -44,18 +42,45 @@ val BorderColor = Color(0xFFE5E7EB)
 // ==========================================
 @Composable
 fun MedicineDetailsScreen(
-    viewModel: MedicineDetailsViewModel = viewModel()
+    viewModel: MedicineDetailsViewModel = hiltViewModel(),
+    onBackClick: () -> Unit = {},
+    onEditClick: (String) -> Unit = {},
+    onDeleted: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showHistoryDialog by remember { mutableStateOf(false) }
+
+    if (showHistoryDialog) {
+        AlertDialog(
+            onDismissRequest = { showHistoryDialog = false },
+            title = { Text("Medicine History & Doses Taken", fontWeight = FontWeight.Bold) },
+            text = {
+                if (uiState.historyLogs.isEmpty()) {
+                    Text("No history recorded yet. Tap 'Mark as Taken' when you take your dose.")
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        uiState.historyLogs.forEach { log ->
+                            Text(text = "• $log", fontSize = 14.sp, color = TextDark)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showHistoryDialog = false }) {
+                    Text("Close", color = PrimaryGreen)
+                }
+            }
+        )
+    }
 
     MedicineDetailsContent(
         uiState = uiState,
-        onBackClick = viewModel::onBackClick,
-        onDeleteClick = viewModel::onDeleteClick,
+        onBackClick = onBackClick,
+        onDeleteClick = { viewModel.onDeleteClick(onDeleted) },
         onMarkTaken = viewModel::onMarkAsTakenClick,
-        onEdit = viewModel::onEditClick,
+        onEdit = { onEditClick(viewModel.medicineId) },
         onRefill = viewModel::onRefillClick,
-        onHistory = viewModel::onHistoryClick
+        onHistory = { showHistoryDialog = true }
     )
 }
 
@@ -112,13 +137,17 @@ fun MedicineDetailsContent(
             // --- Header (Bottle Image & Title) ---
             Box(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(130.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFF0F4F8)),
+                    .background(Color(uiState.pillColorHex).copy(alpha = 0.25f))
+                    .border(2.dp, Color(uiState.pillColorHex).copy(alpha = 0.5f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                // Using a custom drawing for the bottle to match the design
-                LargePillBottleIcon()
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(id = uiState.bottleDrawable),
+                    contentDescription = "Medicine Illustration",
+                    modifier = Modifier.size(90.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -127,6 +156,31 @@ fun MedicineDetailsContent(
             Text(text = uiState.description, fontSize = 14.sp, color = TextGray)
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            // --- Refill Reminder / Low Stock Banner ---
+            if (uiState.isLowStock) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3CD)),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Outlined.Schedule, contentDescription = "Alert", tint = Color(0xFF856404))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Refill Reminder: Low stock! Only ${uiState.remaining} tablets left.",
+                            color = Color(0xFF856404),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
 
             // --- Progress Card ---
             Card(
@@ -298,7 +352,6 @@ fun LargePillBottleIcon() {
         modifier = Modifier.size(width = 90.dp, height = 110.dp),
         contentAlignment = Alignment.TopCenter
     ) {
-        // Cap
         Box(
             modifier = Modifier
                 .padding(top = 4.dp)
@@ -306,7 +359,6 @@ fun LargePillBottleIcon() {
                 .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
                 .background(capColor)
         )
-        // Body
         Box(
             modifier = Modifier
                 .padding(top = 24.dp)
@@ -316,7 +368,6 @@ fun LargePillBottleIcon() {
                 .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp)),
             contentAlignment = Alignment.Center
         ) {
-            // Pills inside (arranged in a cluster)
             Column(
                 verticalArrangement = Arrangement.spacedBy((-8).dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -359,7 +410,7 @@ fun PreviewMedicineDetailsScreen() {
     val dummyState = MedicineDetailsUiState(
         name = "Paracetamol",
         description = "500 mg - 1 tablet",
-        remaining = 20,
+        remaining = 4,
         total = 30,
         startDate = "1 Oct 2026",
         endDate = "30 Oct 2026",
@@ -367,7 +418,8 @@ fun PreviewMedicineDetailsScreen() {
         schedule = listOf(
             DoseItem("8:00 AM", "1 tablet", "Daily"),
             DoseItem("8:00 PM", "1 tablet", "Daily")
-        )
+        ),
+        historyLogs = listOf("Taken at 24 Oct 2026, 08:00 AM")
     )
 
     MaterialTheme {

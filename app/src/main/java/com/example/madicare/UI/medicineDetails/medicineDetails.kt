@@ -211,10 +211,15 @@ fun ProgressCard(uiState: MedicationUiState) {
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val progressColor = when {
+                    uiState.progress > 0.5f -> Color(0xFF34A853)
+                    uiState.progress > 0.2f -> Color(0xFFFBBC05)
+                    else -> Color(0xFFEA4335)
+                }
                 LinearProgressIndicator(
                     progress = { uiState.progress },
                     modifier = Modifier.weight(1f).height(8.dp),
-                    color = PrimaryGreen,
+                    color = progressColor,
                     trackColor = BackgroundGray,
                     strokeCap = androidx.compose.ui.graphics.StrokeCap.Round
                 )

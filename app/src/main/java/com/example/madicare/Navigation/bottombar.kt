@@ -47,7 +47,9 @@ sealed class Screen(
     object Reports : Screen("reports", "Reports", Icons.Outlined.Assignment)
     object Family : Screen("family", "Family", Icons.Outlined.People)
     object More : Screen("more", "More", Icons.Outlined.MoreHoriz)
-    object AddMedicine : Screen("add_medicine", "Add Medicine", Icons.Filled.Home)
+    object AddMedicine : Screen("add_medicine?medicineId={medicineId}", "Add Medicine", Icons.Filled.Home) {
+        fun createRoute(medicineId: Long = -1L) = "add_medicine?medicineId=$medicineId"
+    }
     object MedicineDetails : Screen("medicine_details/{medicineId}", "Medicine Details", Icons.Filled.Home) {
         fun createRoute(medicineId: String) = "medicine_details/$medicineId"
     }
