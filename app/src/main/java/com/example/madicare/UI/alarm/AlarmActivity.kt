@@ -14,6 +14,8 @@ import com.example.madicare.ui.theme.MadicareTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+import androidx.activity.enableEdgeToEdge
+
 @AndroidEntryPoint
 class AlarmActivity : ComponentActivity() {
 
@@ -28,6 +30,7 @@ class AlarmActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         turnOnScreenAndShowOnLockscreen()
 
         val medicineId = intent.getLongExtra("MEDICINE_ID", 0L)

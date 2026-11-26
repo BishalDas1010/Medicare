@@ -38,25 +38,17 @@ import com.example.madicare.Data.DayModel
 import com.example.madicare.Data.HomeUiState
 import com.example.madicare.Data.Medicine
 import com.example.madicare.Ennum.MedicineStatus
+import com.example.madicare.R
+import com.example.madicare.ui.theme.*
 import java.util.Date
-
-// --- Extracted Colors from Design ---
-val PrimaryGreen = Color(0xFF10B981)
-val LightGreenBg = Color(0xFFECFDF5)
-val TextMain = Color(0xFF111827)
-val TextSub = Color(0xFF6B7280)
-val ScreenBg = Color(0xFFF8FAFC)
-val CardBg = Color.White
-val GrayUpcomingBg = Color(0xFFF3F4F6)
-val GrayUpcomingIconBg = Color(0xFFE5E7EB)
-val BorderColor = Color(0xFFE5E7EB)
 
 // WHAT: The main entry point that connects Hilt to the UI
 @Composable
 fun MedicineAppScreen(
     viewModel: HomeViewModel = hiltViewModel(),
     onScheduleClick: () -> Unit = {},
-    onItemClick: (String) -> Unit = {}
+    onItemClick: (String) -> Unit = {},
+    onSettingClick: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     HomeScreenContent(
@@ -64,7 +56,8 @@ fun MedicineAppScreen(
         onMarkAsTaken = viewModel::markAsTaken,
         onScheduleClick = onScheduleClick,
         onDateSelected = viewModel::selectDate,
-        onItemClick = onItemClick
+        onItemClick = onItemClick,
+        onsetting = onSettingClick
     )
 }
 
@@ -74,7 +67,8 @@ fun HomeScreenContent(
     onMarkAsTaken: (String) -> Unit = {},
     onScheduleClick: () -> Unit = {},
     onDateSelected: (Date) -> Unit = {},
-    onItemClick: (String) -> Unit = {}
+    onItemClick: (String) -> Unit = {},
+    onsetting: () -> Unit = {}
 ) {
     if (uiState.isLoading) {
         Box(
@@ -91,7 +85,7 @@ fun HomeScreenContent(
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp, vertical = 16.dp)
             ) {
-                TopBar()
+                TopBar(onsetting = onsetting)
                 Spacer(modifier = Modifier.height(24.dp))
 
                 DateHeader(dateString = uiState.dateString, isToday = uiState.isToday)
@@ -124,6 +118,7 @@ fun HomeScreenContent(
                             modifier = Modifier.padding(24.dp).fillMaxWidth(),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+
                             Icon(Icons.Outlined.Medication, contentDescription = null, tint = TextSub, modifier = Modifier.size(48.dp))
                             Spacer(modifier = Modifier.height(8.dp))
                             Text("No medicines scheduled yet", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = TextMain)
@@ -164,7 +159,9 @@ fun HomeScreenContent(
 // ==========================================
 
 @Composable
-fun TopBar() {
+fun TopBar(
+    onsetting:()->Unit={}
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -174,11 +171,14 @@ fun TopBar() {
             Box(
                 modifier = Modifier
                     .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(PrimaryGreen),
+                    .background(Color.Transparent),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Add, contentDescription = "App Icon", tint = Color.White, modifier = Modifier.size(28.dp))
+                Image(
+                    painter = painterResource(R.drawable.applogo),
+                    contentDescription = "App Icon",
+                    modifier = Modifier.size(48.dp).fillMaxSize()
+                )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -189,7 +189,9 @@ fun TopBar() {
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             Box(contentAlignment = Alignment.TopEnd) {
-                Icon(Icons.Outlined.Notifications, contentDescription = "Notifications", tint = TextMain, modifier = Modifier.size(28.dp))
+                Icon(Icons.Outlined.Notifications,
+                    contentDescription = "Notifications", tint = TextMain,
+                    modifier = Modifier.size(28.dp))
                 Box(
                     modifier = Modifier
                         .size(8.dp)
@@ -198,7 +200,21 @@ fun TopBar() {
                         .border(1.dp, ScreenBg, CircleShape)
                 )
             }
-            Icon(Icons.Outlined.Settings, contentDescription = "Settings", tint = TextMain, modifier = Modifier.size(28.dp))
+
+            IconButton(
+                onClick = {
+                    // Handle settting click
+                    onsetting()
+                },
+                modifier = Modifier.padding(8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = "Settings",
+                    tint = TextMain,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
     }
 }
@@ -472,14 +488,18 @@ fun ScheduleItem(
     }
 }
 
-@Preview(showBackground = true, device = "id:pixel_5")
+@Preview(showBackground = true, device = "id:pixel_5", name = "Home Screen - Loaded")
 @Composable
 fun PreviewMedicineAppScreen() {
     MaterialTheme {
         HomeScreenContent(
             uiState = HomeUiState(
+                isLoading = false,
                 dateString = "Sun, Mar 16, 2025",
                 isToday = true,
+                medicinesTaken = 1,
+                totalMedicines = 3,
+                nextTime = "12:00 PM",
                 weekDays = listOf(
                     DayModel("Sun", "16", "Sun, Mar 16, 2025", Date(), true),
                     DayModel("Mon", "17", "Mon, Mar 17, 2025", Date(), false),
@@ -494,6 +514,33 @@ fun PreviewMedicineAppScreen() {
                     Medicine("2", "My Medication 01", "1 Tablet • Daily", "12:00 PM", MedicineStatus.NEXT),
                     Medicine("3", "My Medication 01", "1 Tablet • Daily", "6:00 PM", MedicineStatus.UPCOMING)
                 )
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true, device = "id:pixel_5", name = "Home Screen - Empty")
+@Composable
+fun PreviewHomeScreenEmpty() {
+    MaterialTheme {
+        HomeScreenContent(
+            uiState = HomeUiState(
+                isLoading = false,
+                dateString = "Sun, Mar 16, 2025",
+                isToday = true,
+                medicinesTaken = 0,
+                totalMedicines = 0,
+                nextTime = "None",
+                weekDays = listOf(
+                    DayModel("Sun", "16", "Sun, Mar 16, 2025", Date(), true),
+                    DayModel("Mon", "17", "Mon, Mar 17, 2025", Date(), false),
+                    DayModel("Tue", "18", "Tue, Mar 18, 2025", Date(), false),
+                    DayModel("Wed", "19", "Wed, Mar 19, 2025", Date(), false),
+                    DayModel("Thu", "20", "Thu, Mar 20, 2025", Date(), false),
+                    DayModel("Fri", "21", "Fri, Mar 21, 2025", Date(), false),
+                    DayModel("Sat", "22", "Sat, Mar 22, 2025", Date(), false)
+                ),
+                schedule = emptyList()
             )
         )
     }

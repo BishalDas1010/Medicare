@@ -4,6 +4,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -29,18 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.example.madicare.R
-import com.example.madicare.UI.PrimaryGreen
-import com.example.madicare.UI.TextGray
-
-// ==========================================
-// 1. UI COLORS
-// ==========================================
-val ProgressGreen = Color(0xFF34A853)
-val ProgressBg = Color(0xFFF3F4F6)
-val TextDark = Color(0xFF1A1A1A)
-val BorderColor = Color(0xFFF3F4F6)
-val ChipSelectedBg = Color(0xFF1A9E56)
-val ChipUnselectedBg = Color(0xFFF5F6F8)
+import com.example.madicare.ui.theme.*
 
 // ==========================================
 // 2. STATEFUL SCREEN (Hooks up to ViewModel)
@@ -128,6 +119,7 @@ fun MyMedicinesContent(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {

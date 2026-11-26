@@ -23,12 +23,22 @@ import kotlinx.coroutines.launch
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun medicareDao(): MedicareDao
+/*
+In Kotlin, a companion object lets you access
+ properties and functions using the class name,
+ without creating an object of that class.
 
+ */
     companion object {
+
+        /*
+        * @Volatile helps make sure that
+        * when one thread updates INSTANCE, other threads can see the latest value.*/
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
+            /*The function checks whether a database already exists.*/
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,

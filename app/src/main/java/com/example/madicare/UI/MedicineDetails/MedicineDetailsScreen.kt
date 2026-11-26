@@ -29,13 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
-// --- UI Colors ---
-val PrimaryGreen = Color(0xFF1A9E56)
-val LightGreenBg = Color(0xFFE8F7F1)
-val TextDark = Color(0xFF1A1A1A)
-val TextGray = Color(0xFF8A8A8A)
-val LightGrayBg = Color(0xFFF5F6F8)
-val BorderColor = Color(0xFFE5E7EB)
+import com.example.madicare.ui.theme.*
 
 // ==========================================
 // 1. STATEFUL SCREEN (Hooks up to ViewModel)

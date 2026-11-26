@@ -34,11 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.madicare.R
-
-// --- Colors ---
-val PrimaryGreen = Color(0xFF0C8040)
-val TextGray = Color(0xFF7A7A7A)
-val BackgroundGray = Color(0xFFF9F9F9)
+import com.example.madicare.ui.theme.*
 
 @Composable
 fun LoginScreen() {
@@ -50,6 +46,8 @@ fun LoginScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .verticalScroll(rememberScrollState())
+            .imePadding()
             .padding(horizontal = 24.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -196,6 +194,7 @@ fun SignUpScreen() {
             .fillMaxSize()
             .background(Color.White)
             .verticalScroll(rememberScrollState())
+            .imePadding()
             .padding(horizontal = 24.dp, vertical = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -374,10 +373,6 @@ fun Forgetpassword(
 ) {
     var email by remember { mutableStateOf("") }
 
-    val primaryGreen = Color(0xFF078653)
-    val textDark = Color(0xFF172536)
-    val textGray = Color(0xFF657286)
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -399,7 +394,7 @@ fun Forgetpassword(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
-                tint = textDark
+                tint = TextDark
             )
         }
 
@@ -417,7 +412,7 @@ fun Forgetpassword(
             Icon(
                 imageVector = Icons.Default.LockReset,
                 contentDescription = "Reset Password",
-                tint = primaryGreen,
+                tint = PrimaryGreen,
                 modifier = Modifier.size(52.dp)
             )
         }
@@ -429,7 +424,7 @@ fun Forgetpassword(
             text = "Forgot Password?",
             fontSize = 30.sp,
             fontWeight = FontWeight.Bold,
-            color = textDark
+            color = TextDark
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -438,7 +433,7 @@ fun Forgetpassword(
             text = "Don't worry! It happens. Enter your registered email address and we'll send you a link to reset your password.",
             fontSize = 16.sp,
             lineHeight = 25.sp,
-            color = textGray
+            color = TextGray
         )
 
         Spacer(modifier = Modifier.height(45.dp))
@@ -448,7 +443,7 @@ fun Forgetpassword(
             text = "Email Address",
             fontSize = 16.sp,
             fontWeight = FontWeight.SemiBold,
-            color = textDark
+            color = TextDark
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -461,14 +456,14 @@ fun Forgetpassword(
             placeholder = {
                 Text(
                     "example@gmail.com",
-                    color = textGray
+                    color = TextGray
                 )
             },
             leadingIcon = {
                 Icon(
                     Icons.Default.Email,
                     contentDescription = null,
-                    tint = textGray
+                    tint = TextGray
                 )
             },
             singleLine = true,
@@ -477,7 +472,7 @@ fun Forgetpassword(
                 keyboardType = KeyboardType.Email
             ),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = primaryGreen,
+                focusedBorderColor = PrimaryGreen,
                 unfocusedBorderColor = Color(0xFFDCE3E8),
                 focusedContainerColor = Color(0xFFF8FAFA),
                 unfocusedContainerColor = Color(0xFFF8FAFA)
@@ -498,7 +493,7 @@ fun Forgetpassword(
                 .height(60.dp),
             shape = RoundedCornerShape(30.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = primaryGreen
+                containerColor = PrimaryGreen
             )
         ) {
             Text(
@@ -519,13 +514,13 @@ fun Forgetpassword(
         ) {
             Text(
                 "Remember your password? ",
-                color = textGray,
+                color = TextGray,
                 fontSize = 14.sp
             )
 
             Text(
                 "Sign In",
-                color = primaryGreen,
+                color = PrimaryGreen,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
                 modifier = Modifier.clickable {

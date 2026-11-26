@@ -23,16 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.madicare.UI.medicineDetails.DoseScheduleItem
-import com.example.madicare.UI.medicineDetails.MedicationUiEvent
-import com.example.madicare.UI.medicineDetails.MedicationUiState
-import com.example.madicare.UI.medicineDetails.MedicationViewModel
 
-// --- Colors ---
-val PrimaryGreen = Color(0xFF2E9E75)
-val BackgroundGray = Color(0xFFF9F9FB)
-val TextDark = Color(0xFF1E1E1E)
-val TextGray = Color(0xFF8E8E93)
+import com.example.madicare.ui.theme.*
 
 // --- Stateful Entry Point ---
 @Composable
@@ -254,12 +246,17 @@ fun DateItem(title: String, value: String, modifier: Modifier = Modifier) {
 
 @Composable
 fun ActionButtonsRow(onEvent: (MedicationUiEvent) -> Unit) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
         ActionButton(
             icon = Icons.Default.CheckCircle,
             label = "Mark as Taken",
             modifier = Modifier.weight(1f),
-            onClick = { onEvent(MedicationUiEvent.OnMarkAsTakenClick) }
+            onClick = {
+                onEvent(MedicationUiEvent.OnMarkAsTakenClick)
+            }
         )
         ActionButton(
             icon = Icons.Outlined.AddBox,

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.People
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -33,8 +34,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 
-import com.example.madicare.UI.home.BorderColor
-import com.example.madicare.UI.home.PrimaryGreen
+import com.example.madicare.ui.theme.*
 
 // 1. Define your Navigation Routes
 sealed class Screen(
@@ -54,6 +54,7 @@ sealed class Screen(
         fun createRoute(medicineId: String) = "medicine_details/$medicineId"
     }
     object ReminderTest : Screen("reminder_test", "Test Center", Icons.Outlined.Assignment)
+    object Settings : Screen("settings", "Settings", Icons.Outlined.Settings)
 }
 
 // List of all tabs

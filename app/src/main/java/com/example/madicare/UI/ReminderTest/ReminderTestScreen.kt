@@ -67,10 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-
-private val PrimaryGreen = Color(0xFF00A86B)
-private val TextDark = Color(0xFF1E1E1E)
-private val TextGray = Color(0xFF757575)
+import com.example.madicare.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,6 +82,48 @@ fun ReminderTestScreen(
     val isAutoWorkflowRunning by viewModel.isAutoWorkflowRunning.collectAsState()
     val workflowMessage by viewModel.workflowMessage.collectAsState()
 
+    ReminderTestScreenContent(
+        onBackClick = onBackClick,
+        testCases = testCases,
+        summaryStats = summaryStats,
+        liveReminders = liveReminders,
+        eventLogs = eventLogs,
+        isAutoWorkflowRunning = isAutoWorkflowRunning,
+        workflowMessage = workflowMessage,
+        onRunAllTests = { viewModel.runAllTests() },
+        onRunAutoWorkflow = { viewModel.runAutomatedWorkflowTest() },
+        onClearLogs = { viewModel.clearLogs() },
+        onRunSingleTest = { viewModel.runTest(it) },
+        onTestNotifNow = { viewModel.testNotificationNow() },
+        onTestAlarm10s = { viewModel.testAlarmAfter10Seconds() },
+        onTestPreReminder10s = { viewModel.testPreReminderAfter10Seconds() },
+        onTestSnooze10s = { viewModel.testSnoozeAfter10Seconds() },
+        onCancelAllAlarms = { viewModel.cancelAllTestAlarms() },
+        onRefreshLiveReminders = { viewModel.refreshLiveReminders() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReminderTestScreenContent(
+    onBackClick: (() -> Unit)? = null,
+    testCases: List<TestCase>,
+    summaryStats: SummaryStats,
+    liveReminders: List<LiveReminderItem>,
+    eventLogs: List<EventLogItem>,
+    isAutoWorkflowRunning: Boolean,
+    workflowMessage: String,
+    onRunAllTests: () -> Unit,
+    onRunAutoWorkflow: () -> Unit,
+    onClearLogs: () -> Unit,
+    onRunSingleTest: (String) -> Unit,
+    onTestNotifNow: () -> Unit,
+    onTestAlarm10s: () -> Unit,
+    onTestPreReminder10s: () -> Unit,
+    onTestSnooze10s: () -> Unit,
+    onCancelAllAlarms: () -> Unit,
+    onRefreshLiveReminders: () -> Unit
+) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
     val tabs = listOf("Dashboard & Tests", "Manual Controls", "Live Reminders", "Event Logs")
 
@@ -115,9 +154,9 @@ fun ReminderTestScreen(
             // Summary Card at top
             SummaryCard(
                 stats = summaryStats,
-                onRunAll = { viewModel.runAllTests() },
-                onRunAutoWorkflow = { viewModel.runAutomatedWorkflowTest() },
-                onClearLogs = { viewModel.clearLogs() }
+                onRunAll = onRunAllTests,
+                onRunAutoWorkflow = onRunAutoWorkflow,
+                onClearLogs = onClearLogs
             )
 
             AnimatedVisibility(visible = isAutoWorkflowRunning) {
@@ -159,18 +198,18 @@ fun ReminderTestScreen(
             when (selectedTabIndex) {
                 0 -> TestDashboardSection(
                     testCases = testCases,
-                    onRunSingleTest = { viewModel.runTest(it) }
+                    onRunSingleTest = onRunSingleTest
                 )
                 1 -> ManualControlsSection(
-                    onTestNotifNow = { viewModel.testNotificationNow() },
-                    onTestAlarm10s = { viewModel.testAlarmAfter10Seconds() },
-                    onTestPreReminder10s = { viewModel.testPreReminderAfter10Seconds() },
-                    onTestSnooze10s = { viewModel.testSnoozeAfter10Seconds() },
-                    onCancelAllAlarms = { viewModel.cancelAllTestAlarms() }
+                    onTestNotifNow = onTestNotifNow,
+                    onTestAlarm10s = onTestAlarm10s,
+                    onTestPreReminder10s = onTestPreReminder10s,
+                    onTestSnooze10s = onTestSnooze10s,
+                    onCancelAllAlarms = onCancelAllAlarms
                 )
                 2 -> LiveRemindersSection(
                     reminders = liveReminders,
-                    onRefresh = { viewModel.refreshLiveReminders() }
+                    onRefresh = onRefreshLiveReminders
                 )
                 3 -> EventLogsSection(logs = eventLogs)
             }
@@ -515,5 +554,233 @@ fun EventLogsSection(logs: List<EventLogItem>) {
                 }
             }
         }
+    }
+}
+
+
+
+// ---------------------------------------------------------------------
+// Preview sample data
+// NOTE: I inferred these constructors from how your UI reads the fields.
+// If a type differs (e.g. Int vs Long vs String for ids), adjust here.
+// ---------------------------------------------------------------------
+
+private val previewStats = SummaryStats(
+    successPercentage = 60,
+    lastExecutionTime = "10:42:15 AM",
+    total = 5,
+    passed = 3,
+    failed = 1,
+    notTested = 1
+)
+
+private val previewTestCases = listOf(
+    TestCase(
+        id = "1",
+        name = "Exact Alarm Scheduling",
+        description = "Verifies AlarmManager schedules an exact alarm",
+        status = TestStatus.PASSED,
+        executionTimeMs = 120,
+        errorMessage = null
+    ),
+    TestCase(
+        id = "2",
+        name = "Pre-Reminder Notification",
+        description = "Checks pre-reminder fires before the main alarm",
+        status = TestStatus.FAILED,
+        executionTimeMs = 340,
+        errorMessage = "Notification permission denied"
+    ),
+    TestCase(
+        id = "3",
+        name = "Snooze Flow",
+        description = "Verifies snooze reschedules the reminder",
+        status = TestStatus.RUNNING,
+        executionTimeMs = 0,
+        errorMessage = null
+    ),
+    TestCase(
+        id = "4",
+        name = "Boot Receiver",
+        description = "Reschedules alarms after device reboot",
+        status = TestStatus.NOT_TESTED,
+        executionTimeMs = 0,
+        errorMessage = null
+    )
+)
+
+private val previewLiveReminders = listOf(
+    LiveReminderItem(
+        medicineId = 101L,
+        medicineName = "Paracetamol 500mg",
+        scheduledTimeFormatted = "08:00 AM",
+        preReminderTimeFormatted = "07:50 AM",
+        alarmType = "MAIN",
+        nextTriggerTimeFormatted = "08:00 AM",
+        status = "SCHEDULED",
+        snoozeCount = 0,
+        pendingIntentId = 1001
+    ),
+    LiveReminderItem(
+        medicineId = 102L,
+        medicineName = "Vitamin D3",
+        scheduledTimeFormatted = "09:15 AM",
+        preReminderTimeFormatted = null,
+        alarmType = "SNOOZE",
+        nextTriggerTimeFormatted = "09:25 AM",
+        status = "SNOOZED",
+        snoozeCount = 2,
+        pendingIntentId = 1002
+    )
+)
+
+private val previewEventLogs = listOf(
+    EventLogItem(
+        id = 1,
+        eventType = "ALARM_FIRED",
+        timestampFormatted = "10:42:15",
+        details = "Alarm fired for test ID 9001",
+        isSuccess = true
+    ),
+    EventLogItem(
+        id = 2,
+        eventType = "NOTIFICATION_FAILED",
+        timestampFormatted = "10:42:20",
+        details = "Permission POST_NOTIFICATIONS not granted",
+        isSuccess = false
+    )
+)
+
+// ---------------------------------------------------------------------
+// Previews
+// ---------------------------------------------------------------------
+
+@Preview(showBackground = true, name = "Summary Card")
+@Composable
+private fun SummaryCardPreview() {
+    MaterialTheme {
+        SummaryCard(
+            stats = previewStats,
+            onRunAll = {},
+            onRunAutoWorkflow = {},
+            onClearLogs = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Stat Chips")
+@Composable
+private fun StatChipPreview() {
+    MaterialTheme {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            StatChip(label = "Total: 5", color = Color.DarkGray)
+            StatChip(label = "Passed: 3", color = Color(0xFF2E7D32))
+            StatChip(label = "Failed: 1", color = Color(0xFFC62828))
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Status Badges")
+@Composable
+private fun StatusBadgePreview() {
+    MaterialTheme {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TestStatus.entries.forEach { StatusBadge(status = it) }
+        }
+    }
+}
+
+@Preview(showBackground = true, name = "Full Screen Preview", heightDp = 800)
+@Composable
+private fun FullReminderTestScreenPreview() {
+    MaterialTheme {
+        ReminderTestScreenContent(
+            onBackClick = {},
+            testCases = previewTestCases,
+            summaryStats = previewStats,
+            liveReminders = previewLiveReminders,
+            eventLogs = previewEventLogs,
+            isAutoWorkflowRunning = false,
+            workflowMessage = "",
+            onRunAllTests = {},
+            onRunAutoWorkflow = {},
+            onClearLogs = {},
+            onRunSingleTest = {},
+            onTestNotifNow = {},
+            onTestAlarm10s = {},
+            onTestPreReminder10s = {},
+            onTestSnooze10s = {},
+            onCancelAllAlarms = {},
+            onRefreshLiveReminders = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Tab 1 - Dashboard & Tests", heightDp = 600)
+@Composable
+private fun TestDashboardSectionPreview() {
+    MaterialTheme {
+        TestDashboardSection(
+            testCases = previewTestCases,
+            onRunSingleTest = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Tab 2 - Manual Controls", heightDp = 700)
+@Composable
+private fun ManualControlsSectionPreview() {
+    MaterialTheme {
+        ManualControlsSection(
+            onTestNotifNow = {},
+            onTestAlarm10s = {},
+            onTestPreReminder10s = {},
+            onTestSnooze10s = {},
+            onCancelAllAlarms = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Tab 3 - Live Reminders", heightDp = 500)
+@Composable
+private fun LiveRemindersSectionPreview() {
+    MaterialTheme {
+        LiveRemindersSection(
+            reminders = previewLiveReminders,
+            onRefresh = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Tab 3 - Live Reminders (Empty)", heightDp = 400)
+@Composable
+private fun LiveRemindersSectionEmptyPreview() {
+    MaterialTheme {
+        LiveRemindersSection(
+            reminders = emptyList(),
+            onRefresh = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Tab 4 - Event Logs", heightDp = 400)
+@Composable
+private fun EventLogsSectionPreview() {
+    MaterialTheme {
+        EventLogsSection(logs = previewEventLogs)
+    }
+}
+
+@Preview(showBackground = true, name = "Tab 4 - Event Logs (Empty)", heightDp = 400)
+@Composable
+private fun EventLogsSectionEmptyPreview() {
+    MaterialTheme {
+        EventLogsSection(logs = emptyList())
     }
 }

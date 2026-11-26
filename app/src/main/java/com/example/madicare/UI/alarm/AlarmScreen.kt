@@ -1,10 +1,20 @@
 package com.example.madicare.UI.alarm
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.with
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,8 +26,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,17 +37,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.outlined.Alarm
-import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,13 +52,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.madicare.R
+
+import com.example.madicare.ui.theme.*
 
 enum class AlarmUIState {
     ACTIVE_ALARM,
@@ -57,14 +73,13 @@ enum class AlarmUIState {
     NOT_CONFIRMED
 }
 
-private val PrimaryGreen = Color(0xFF00875A)
-private val TextDark = Color(0xFF1F2937)
-private val TextGray = Color(0xFF6B7280)
-private val LightGrayBg = Color(0xFFF3F4F6)
-private val LightPinkBg = Color(0xFFFDF2F2)
-private val DangerRed = Color(0xFFE53935)
+// ---- Glass Effect Overlays ----
+private val GlassFill = Color.White.copy(alpha = 0.16f)
+private val GlassBorder = Color.White.copy(alpha = 0.30f)
 
-@OptIn(ExperimentalAnimationApi::class)
+// ==========================================
+// ROOT SCREEN
+// ==========================================
 @Composable
 fun AlarmScreen(
     medicineId: Long,
@@ -77,130 +92,106 @@ fun AlarmScreen(
 ) {
     var uiState by remember { mutableStateOf(AlarmUIState.ACTIVE_ALARM) }
 
+    val topColor by animateColorAsState(
+        targetValue = when (uiState) {
+            AlarmUIState.ACTIVE_ALARM -> ActiveTop
+            AlarmUIState.TAKEN_SUCCESS -> SuccessTop
+            AlarmUIState.NOT_CONFIRMED -> AlertTop
+        },
+        animationSpec = tween(600),
+        label = "topColor"
+    )
+    val bottomColor by animateColorAsState(
+        targetValue = when (uiState) {
+            AlarmUIState.ACTIVE_ALARM -> ActiveBottom
+            AlarmUIState.TAKEN_SUCCESS -> SuccessBottom
+            AlarmUIState.NOT_CONFIRMED -> AlertBottom
+        },
+        animationSpec = tween(600),
+        label = "bottomColor"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF4B5563)) // Top dark gray background
+            .background(Brush.verticalGradient(listOf(topColor, bottomColor)))
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
-        // --- Top Header Bar ---
+        // Scheduled time pill
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 24.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(top = 20.dp)
+                .align(Alignment.CenterHorizontally)
+                .clip(CircleShape)
+                .background(GlassFill)
+                .border(1.dp, GlassBorder, CircleShape)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFD1D5DB)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🧑‍⚕️", fontSize = 22.sp)
-                }
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "Good Morning,",
-                        fontSize = 12.sp,
-                        color = Color(0xFFD1D5DB)
-                    )
-                    Text(
-                        text = "Bishal 👋",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color(0x33FFFFFF)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Notifications,
-                    contentDescription = "Notification",
-                    tint = Color.White,
-                    modifier = Modifier.size(22.dp)
-                )
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFFF6B00))
-                        .align(Alignment.TopEnd)
-                        .padding(4.dp)
-                )
-            }
+            Icon(
+                imageVector = Icons.Outlined.Schedule,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "Scheduled · $scheduledTime",
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
         }
 
-        // --- Main White Bottom Card ---
-        Card(
-            modifier = Modifier
-                .fillMaxSize(),
-            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            AnimatedContent(
-                targetState = uiState,
-                transitionSpec = { fadeIn() with fadeOut() }
-            ) { state ->
-                when (state) {
-                    AlarmUIState.ACTIVE_ALARM -> ActiveAlarmContent(
-                        medicineName = medicineName,
-                        dosage = dosage,
-                        onTakenClick = {
-                            uiState = AlarmUIState.TAKEN_SUCCESS
-                            onMarkAsTaken(medicineId)
-                        },
-                        onSnoozeClick = {
-                            onSnooze(medicineId)
-                            onDismiss(medicineId)
-                        },
-                        onSkipClick = {
-                            uiState = AlarmUIState.NOT_CONFIRMED
-                        }
-                    )
+        AnimatedContent(
+            targetState = uiState,
+            modifier = Modifier.fillMaxSize(),
+            transitionSpec = { fadeIn(tween(400)) togetherWith fadeOut(tween(250)) },
+            label = "alarmState"
+        ) { state ->
+            when (state) {
+                AlarmUIState.ACTIVE_ALARM -> ActiveAlarmContent(
+                    medicineName = medicineName,
+                    dosage = dosage,
+                    onTakenClick = {
+                        uiState = AlarmUIState.TAKEN_SUCCESS
+                        onMarkAsTaken(medicineId)
+                    },
+                    onSnoozeClick = {
+                        onSnooze(medicineId)
+                        onDismiss(medicineId)
+                    },
+                    onSkipClick = { uiState = AlarmUIState.NOT_CONFIRMED }
+                )
 
-                    AlarmUIState.TAKEN_SUCCESS -> TakenSuccessContent(
-                        medicineName = medicineName,
-                        dosage = dosage,
-                        onDoneClick = {
-                            onDismiss(medicineId)
-                        }
-                    )
+                AlarmUIState.TAKEN_SUCCESS -> TakenSuccessContent(
+                    medicineName = medicineName,
+                    dosage = dosage,
+                    onDoneClick = { onDismiss(medicineId) }
+                )
 
-                    AlarmUIState.NOT_CONFIRMED -> NotConfirmedContent(
-                        scheduledTime = scheduledTime,
-                        medicineName = medicineName,
-                        dosage = dosage,
-                        onTakenClick = {
-                            uiState = AlarmUIState.TAKEN_SUCCESS
-                            onMarkAsTaken(medicineId)
-                        },
-                        onSnoozeClick = {
-                            onSnooze(medicineId)
-                            onDismiss(medicineId)
-                        },
-                        onTakeLaterClick = {
-                            onDismiss(medicineId)
-                        }
-                    )
-                }
+                AlarmUIState.NOT_CONFIRMED -> NotConfirmedContent(
+                    scheduledTime = scheduledTime,
+                    medicineName = medicineName,
+                    dosage = dosage,
+                    onTakenClick = {
+                        uiState = AlarmUIState.TAKEN_SUCCESS
+                        onMarkAsTaken(medicineId)
+                    },
+                    onSnoozeClick = {
+                        onSnooze(medicineId)
+                        onDismiss(medicineId)
+                    },
+                    onTakeLaterClick = { onDismiss(medicineId) }
+                )
             }
         }
     }
 }
 
 // ==========================================
-// SCREEN 1: ACTIVE ALARM CONTENT
+// SCREEN 1: ACTIVE ALARM
 // ==========================================
 @Composable
 fun ActiveAlarmContent(
@@ -213,105 +204,73 @@ fun ActiveAlarmContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.weight(1f))
+
+        PulsingRings(ringColor = Color.White) {
+            Box(
+                modifier = Modifier
+                    .size(132.dp)
+                    .shadow(16.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.bluebotttle),
+                    contentDescription = "Medicine Bottle",
+                    modifier = Modifier.size(84.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Time to take your\nmedicine",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            lineHeight = 34.sp
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        MedicineGlassCard(medicineName = medicineName, dosage = dosage)
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        SolidActionButton(
+            text = "Mark as Taken",
+            textColor = PrimaryGreen,
+            icon = Icons.Default.Check,
+            onClick = onTakenClick
+        )
         Spacer(modifier = Modifier.height(12.dp))
-
-        // Center Graphic: Pill Bottle surrounded by soft circular background glow
-        Box(
-            modifier = Modifier
-                .size(180.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFF3F4F6)),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.bluebotttle),
-                contentDescription = "Medicine Bottle",
-                modifier = Modifier.size(120.dp)
-            )
-        }
-
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(vertical = 12.dp)
+        GlassActionButton(
+            text = "Snooze 10 minutes",
+            icon = Icons.Outlined.Alarm,
+            onClick = onSnoozeClick
+        )
+        TextButton(
+            onClick = onSkipClick,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Time to take your\nmedicine",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextDark,
-                textAlign = TextAlign.Center,
-                lineHeight = 30.sp
+                text = "Skip this dose",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = 0.85f)
             )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = medicineName,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextDark
-            )
-            Text(
-                text = dosage,
-                fontSize = 14.sp,
-                color = TextGray
-            )
-        }
-
-        // Action Buttons
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Button(
-                onClick = onTakenClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
-            ) {
-                Text("Mark as Taken", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            }
-
-            Button(
-                onClick = onSnoozeClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LightGrayBg)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Alarm,
-                        contentDescription = null,
-                        tint = TextDark,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Snooze 10 minutes", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
-                }
-            }
-
-            Button(
-                onClick = onSkipClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LightPinkBg)
-            ) {
-                Text("Skip", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = DangerRed)
-            }
         }
     }
 }
 
 // ==========================================
-// SCREEN 2: SUCCESS CONFIRMATION CONTENT
+// SCREEN 2: SUCCESS
 // ==========================================
 @Composable
 fun TakenSuccessContent(
@@ -319,100 +278,95 @@ fun TakenSuccessContent(
     dosage: String,
     onDoneClick: () -> Unit
 ) {
+    val scale = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        scale.animateTo(
+            targetValue = 1f,
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
-        // Center Graphic: Soft green glow circle + Checkmark circle
         Box(
             modifier = Modifier
-                .size(170.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFE8F5E9)),
+                .size(220.dp)
+                .graphicsLayer {
+                    scaleX = scale.value
+                    scaleY = scale.value
+                },
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
-                    .size(96.dp)
+                    .size(220.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFF00A86B)),
+                    .background(Color.White.copy(alpha = 0.14f))
+            )
+            Box(
+                modifier = Modifier
+                    .size(170.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.22f))
+            )
+            Box(
+                modifier = Modifier
+                    .size(116.dp)
+                    .shadow(16.dp, CircleShape)
+                    .clip(CircleShape)
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = "Success",
-                    tint = Color.White,
-                    modifier = Modifier.size(54.dp)
+                    tint = PrimaryGreen,
+                    modifier = Modifier.size(64.dp)
                 )
             }
         }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(vertical = 12.dp)
-        ) {
-            Text(
-                text = "Great! 🎉",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextDark
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = "You have taken your medicine.",
-                fontSize = 14.sp,
-                color = TextGray
-            )
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Great! 🎉",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = "You have taken your medicine.",
+            fontSize = 15.sp,
+            color = Color.White.copy(alpha = 0.85f)
+        )
 
-            // Medicine Info Card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                border = CardDefaults.outlinedCardBorder().copy(brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFE5E7EB)))
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.bluebotttle),
-                        contentDescription = null,
-                        modifier = Modifier.size(44.dp)
-                    )
-                    Spacer(modifier = Modifier.width(14.dp))
-                    Column {
-                        Text(medicineName, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = TextDark)
-                        Text(dosage, fontSize = 13.sp, color = TextGray)
-                    }
-                }
-            }
-        }
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = onDoneClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            shape = RoundedCornerShape(26.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
-        ) {
-            Text("Done", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-        }
+        MedicineGlassCard(medicineName = medicineName, dosage = dosage)
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        SolidActionButton(
+            text = "Done",
+            textColor = PrimaryGreen,
+            icon = null,
+            onClick = onDoneClick
+        )
     }
 }
 
 // ==========================================
-// SCREEN 3: DOSE NOT CONFIRMED CONTENT
+// SCREEN 3: DOSE NOT CONFIRMED
 // ==========================================
 @Composable
 fun NotConfirmedContent(
@@ -423,101 +377,304 @@ fun NotConfirmedContent(
     onSnoozeClick: () -> Unit,
     onTakeLaterClick: () -> Unit
 ) {
+    val transition = rememberInfiniteTransition(label = "bell")
+    val swing = transition.animateFloat(
+        initialValue = -14f,
+        targetValue = 14f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(450, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "swing"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceBetween
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.weight(1f))
 
-        // Center Graphic: Soft Red Glow Circle + Notification Bell
-        Box(
-            modifier = Modifier
-                .size(170.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFFFEBEE)),
-            contentAlignment = Alignment.Center
-        ) {
+        PulsingRings(ringColor = Color.White) {
             Box(
                 modifier = Modifier
-                    .size(96.dp)
+                    .size(124.dp)
+                    .shadow(16.dp, CircleShape)
                     .clip(CircleShape)
-                    .background(Color(0xFFFFE0E0)),
+                    .background(Color.White),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "Alert",
                     tint = DangerRed,
-                    modifier = Modifier.size(50.dp)
+                    modifier = Modifier
+                        .size(60.dp)
+                        .graphicsLayer { rotationZ = swing.value }
                 )
             }
         }
 
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(vertical = 12.dp)
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Dose not confirmed",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Your $scheduledTime medicine has not\nbeen confirmed yet.",
+            fontSize = 15.sp,
+            color = Color.White.copy(alpha = 0.88f),
+            textAlign = TextAlign.Center,
+            lineHeight = 21.sp
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        MedicineGlassCard(medicineName = medicineName, dosage = dosage)
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        SolidActionButton(
+            text = "Mark as Taken",
+            textColor = PrimaryGreen,
+            icon = Icons.Default.Check,
+            onClick = onTakenClick
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        GlassActionButton(
+            text = "Snooze 10 minutes",
+            icon = Icons.Outlined.Alarm,
+            onClick = onSnoozeClick
+        )
+        TextButton(
+            onClick = onTakeLaterClick,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "Dose not confirmed",
-                fontSize = 24.sp,
+                text = "I will take later",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White.copy(alpha = 0.9f)
+            )
+        }
+    }
+}
+
+// ==========================================
+// SHARED COMPONENTS
+// ==========================================
+
+/** Two expanding, fading rings behind [content]. */
+@Composable
+private fun PulsingRings(
+    ringColor: Color,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val transition = rememberInfiniteTransition(label = "rings")
+    val progress = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2400, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "ringProgress"
+    )
+
+    Box(
+        modifier = modifier.size(280.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        repeat(2) { index ->
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .graphicsLayer {
+                        val p = (progress.value + index * 0.5f) % 1f
+                        val s = 1f + p * 0.85f
+                        scaleX = s
+                        scaleY = s
+                        alpha = (1f - p) * 0.35f
+                    }
+                    .background(ringColor, CircleShape)
+            )
+        }
+        Box(
+            modifier = Modifier
+                .size(176.dp)
+                .background(Color.White.copy(alpha = 0.16f), CircleShape)
+        )
+        content()
+    }
+}
+
+/** Frosted card showing the medicine name and dosage. */
+@Composable
+private fun MedicineGlassCard(medicineName: String, dosage: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(GlassFill)
+            .border(1.dp, GlassBorder, RoundedCornerShape(20.dp))
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .clip(CircleShape)
+                .background(Color.White),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.bluebotttle),
+                contentDescription = null,
+                modifier = Modifier.size(34.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(14.dp))
+        Column {
+            Text(
+                text = medicineName,
+                fontSize = 17.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark
+                color = Color.White
             )
-            Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Your $scheduledTime medicine has not\nbeen confirmed yet.",
+                text = dosage,
                 fontSize = 14.sp,
-                color = TextGray,
-                textAlign = TextAlign.Center,
-                lineHeight = 20.sp
+                color = Color.White.copy(alpha = 0.8f)
             )
         }
+    }
+}
 
-        // Action Buttons
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Button(
-                onClick = onTakenClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
-            ) {
-                Text("Mark as Taken", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
-            }
-
-            Button(
-                onClick = onSnoozeClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(26.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = LightGrayBg)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.Alarm,
-                        contentDescription = null,
-                        tint = TextDark,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Snooze 10 minutes", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = TextDark)
-                }
-            }
-
-            TextButton(
-                onClick = onTakeLaterClick,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("I will take later", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = DangerRed)
-            }
+/** High-contrast primary button (white with colored text). */
+@Composable
+private fun SolidActionButton(
+    text: String,
+    textColor: Color,
+    icon: ImageVector?,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(58.dp),
+        shape = RoundedCornerShape(29.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.White,
+            contentColor = textColor
+        ),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+    ) {
+        if (icon != null) {
+            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(22.dp))
+            Spacer(modifier = Modifier.width(8.dp))
         }
+        Text(text = text, fontSize = 17.sp, fontWeight = FontWeight.Bold, color = textColor)
+    }
+}
+
+/** Translucent secondary button with a thin white outline. */
+@Composable
+private fun GlassActionButton(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp),
+        shape = RoundedCornerShape(27.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = GlassFill,
+            contentColor = Color.White
+        ),
+        border = BorderStroke(1.dp, GlassBorder),
+        elevation = null
+    ) {
+        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+    }
+}
+
+// ==========================================
+// PREVIEWS
+// ==========================================
+
+@Composable
+private fun PreviewBackdrop(top: Color, bottom: Color, content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Brush.verticalGradient(listOf(top, bottom)))
+    ) { content() }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "Alarm Screen (interactive)")
+@Composable
+private fun AlarmScreenPreview() {
+    AlarmScreen(
+        medicineId = 1L,
+        medicineName = "Paracetamol 500mg",
+        dosage = "1 tablet",
+        scheduledTime = "08:00 AM",
+        onMarkAsTaken = {},
+        onSnooze = {},
+        onDismiss = {}
+    )
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "1 - Active Alarm")
+@Composable
+private fun ActiveAlarmContentPreview() {
+    PreviewBackdrop(ActiveTop, ActiveBottom) {
+        ActiveAlarmContent(
+            medicineName = "Paracetamol 500mg",
+            dosage = "1 tablet",
+            onTakenClick = {},
+            onSnoozeClick = {},
+            onSkipClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "2 - Taken Success")
+@Composable
+private fun TakenSuccessContentPreview() {
+    PreviewBackdrop(SuccessTop, SuccessBottom) {
+        TakenSuccessContent(
+            medicineName = "Paracetamol 500mg",
+            dosage = "1 tablet",
+            onDoneClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, name = "3 - Not Confirmed")
+@Composable
+private fun NotConfirmedContentPreview() {
+    PreviewBackdrop(AlertTop, AlertBottom) {
+        NotConfirmedContent(
+            scheduledTime = "08:00 AM",
+            medicineName = "Paracetamol 500mg",
+            dosage = "1 tablet",
+            onTakenClick = {},
+            onSnoozeClick = {},
+            onTakeLaterClick = {}
+        )
     }
 }

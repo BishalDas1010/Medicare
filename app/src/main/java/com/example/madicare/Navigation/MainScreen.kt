@@ -15,6 +15,8 @@ import com.example.madicare.UI.Medicines.MyMedicinesScreen
 import com.example.madicare.UI.Medicines.madicine_ADD.AddMedicineScreen
 import com.example.madicare.UI.home.MedicineAppScreen
 import com.example.madicare.UI.MedicineDetails.MedicineDetailsScreen
+import com.example.madicare.UI.report.HealthReportScreen
+import com.example.madicare.Setting.settings.SettingsScreen
 
 @Composable
 fun MainAppScreen() {
@@ -33,7 +35,8 @@ fun MainAppScreen() {
             composable(Screen.Home.route) {
                 MedicineAppScreen(
                     onScheduleClick = { navController.navigate(Screen.AddMedicine.createRoute()) },
-                    onItemClick = { medicineId -> navController.navigate(Screen.MedicineDetails.createRoute(medicineId)) }
+                    onItemClick = { medicineId -> navController.navigate(Screen.MedicineDetails.createRoute(medicineId)) },
+                    onSettingClick = { navController.navigate(Screen.Settings.route) }
                 )
             }
             composable(Screen.Medicines.route) {
@@ -68,13 +71,23 @@ fun MainAppScreen() {
                 )
             }
             composable(Screen.Reports.route) {
-                Text("Reports Screen")
+                HealthReportScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             composable(Screen.Family.route) {
                 Text("Family Screen")
             }
             composable(Screen.More.route) {
                 com.example.madicare.UI.ReminderTest.ReminderTestScreen()
+            }
+            composable(Screen.Settings.route) {
+                SettingsScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToTestCenter = {
+                        navController.navigate(Screen.ReminderTest.route)
+                    }
+                )
             }
         }
     }

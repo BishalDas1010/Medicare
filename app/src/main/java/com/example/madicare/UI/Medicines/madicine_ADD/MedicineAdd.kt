@@ -36,15 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.madicare.R
 
-// ==========================================
-// COLORS & CONSTANTS
-// ==========================================
-val PrimaryGreen = Color(0xFF0F8A43)
-val LightGreenBg = Color(0xFFF0F9F2)
-val FieldBgColor = Color(0xFFF8F8F8)
-val TextDark = Color(0xFF1E1E1E)
-val TextGray = Color(0xFF8E8E93)
-val BorderColor = Color(0xFFE5E5EA)
+import com.example.madicare.ui.theme.*
 
 val TabletColorOptions = listOf(
     0xFFFFFFFF, // White
@@ -185,6 +177,7 @@ fun AddMedicineContent(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
+                .imePadding()
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
